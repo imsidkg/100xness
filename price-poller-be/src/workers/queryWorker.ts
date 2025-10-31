@@ -2,10 +2,9 @@ import { BID_ASK_CHANNEL, redis } from "../lib/redisClient";
 import { insertTickerBatch } from "../services/timescaleService";
 import { Ticker } from "../models/ticker";
 
-const SPREAD_PERCENTAGE = 0.01; // 1% spread
+const SPREAD_PERCENTAGE = 0.01;
 
 export const processQueue = async () => {
-  // Removed broadcastMessage parameter
   while (true) {
     let items: string[] = [];
 
@@ -21,10 +20,9 @@ export const processQueue = async () => {
         const tradePrice = parseFloat(trade.p);
         const tradeQuantity = parseFloat(trade.q);
 
-        const bidPrice = tradePrice * (1 - SPREAD_PERCENTAGE); // Bid is 1% less than current price
-        const askPrice = tradePrice * (1 + SPREAD_PERCENTAGE); // Ask is 1% more than current price
+        const bidPrice = tradePrice * (1 - SPREAD_PERCENTAGE);
+        const askPrice = tradePrice * (1 + SPREAD_PERCENTAGE);
 
-        // Publish the latest bid/ask prices to Redis
         redis.publish(
           BID_ASK_CHANNEL,
           JSON.stringify({
@@ -37,7 +35,7 @@ export const processQueue = async () => {
         );
 
         return {
-          time: new Date(trade.T), // Use trade time
+          time: new Date(trade.T),
           symbol: trade.s.toLowerCase(),
           tradePrice: tradePrice,
           bidPrice: bidPrice,
@@ -53,8 +51,9 @@ export const processQueue = async () => {
         await insertTickerBatch(tickers);
       }
     } else {
-      // console.log("Binance trade queue is empty, waiting..."); // Too verbose, remove for now
+      
       await new Promise((res) => setTimeout(res, 100));
     }
   }
 };
+ 

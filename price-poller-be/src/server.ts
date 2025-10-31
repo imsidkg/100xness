@@ -2,8 +2,11 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { getCandles } from "./controllers/candleController";
 import authRoutes from "./routes/authRoutes";
-import tradeRoutes from "./routes/tradeRoutes"; // Import tradeRoutes
-import { startPriceListener, monitorTradesForLiquidation } from "./services/tradeService"; // Import price listener and monitor
+import tradeRoutes from "./routes/tradeRoutes";
+import {
+  startPriceListener,
+  monitorTradesForLiquidation,
+} from "./services/tradeService";
 
 const app = express();
 
@@ -11,7 +14,7 @@ const port = 3001;
 
 app.use(cors());
 app.use(express.json());
-// app.use(bodyParser.json()); // Removed as express.json() is used and bodyParser is not imported
+
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from the price poller BE!");
 });

@@ -4,7 +4,6 @@ import { PoolClient } from "pg";
 import { Trade } from "../models/trade";
 import { getLatestTradePrice } from "./timescaleService";
 
-// A type that extends the base Trade model with the dynamic unrealized_pnl property
 export type TradeWithUnrealizedPnl = Trade & { unrealized_pnl: number | null };
 
 export const currentPrices: Map<string, { ask: number; bid: number }> =
@@ -31,9 +30,6 @@ export const startPriceListener = () => {
         if (symbol && askPrice !== undefined) {
           console.log(`Updating price for ${symbol}: ${askPrice}`);
           currentPrices.set(symbol, { ask: askPrice, bid: bidPrice });
-
-          // Debug: log current prices map
-          console.log("Current prices:", Array.from(currentPrices.entries()));
         }
       } catch (error) {
         console.error("Error parsing Redis message:", error);
