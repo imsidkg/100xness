@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
-import ModernAuth from "./components/ModernAuth";
+import { LandingPage } from "./components/LandingPage";
 import TradingDashboard from "./components/TradingDashboard";
 
 type State = {
@@ -277,9 +277,9 @@ function App() {
   return (
     <>
       {!isLoggedIn ? (
-        <ModernAuth onAuthSuccess={handleAuthSuccess} />
+        <LandingPage onAuthSuccess={handleAuthSuccess} />
       ) : (
-                <TradingDashboard
+        <TradingDashboard
           symbol={state.symbol}
           interval={state.interval}
           prices={state.prices}
