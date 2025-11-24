@@ -7,7 +7,6 @@ import { FinalCTA } from './landing/FinalCTA';
 import { Footer } from './landing/Footer';
 import { AuthCard } from './AuthCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
 
 interface LandingPageProps {
   onAuthSuccess: () => void;
@@ -67,17 +66,9 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="relative pointer-events-auto"
+                className="pointer-events-auto"
               >
-                {/* Close button */}
-                <button
-                  onClick={handleCloseAuth}
-                  className="absolute -top-4 -right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
-                >
-                  <X className="h-5 w-5 text-gray-600" />
-                </button>
-                
-                <AuthCard onAuthSuccess={onAuthSuccess} />
+                <AuthCard onAuthSuccess={onAuthSuccess} onClose={handleCloseAuth} />
               </motion.div>
             </div>
           </>

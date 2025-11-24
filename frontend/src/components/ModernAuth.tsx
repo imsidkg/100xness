@@ -192,12 +192,7 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
               </button>
             </div>
 
-            {/* Demo Credentials Hint */}
-            <div className="mt-6 p-3 bg-slate-700/50 rounded-lg">
-              <p className="text-xs text-slate-400 text-center">
-                💡 Demo: Use any email/password to test the platform
-              </p>
-            </div>
+          
           </CardContent>
         </Card>
 

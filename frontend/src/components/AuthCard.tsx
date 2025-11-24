@@ -7,7 +7,8 @@ import {
   Lock, 
   UserPlus, 
   LogIn,
-  TrendingUp
+  TrendingUp,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -16,9 +17,10 @@ import { Label } from "./ui/label";
 
 interface AuthCardProps {
   onAuthSuccess: () => void;
+  onClose?: () => void;
 }
 
-export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess }) => {
+export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [message, setMessage] = useState<string | null>(null);
@@ -68,7 +70,14 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess }) => {
       transition={{ duration: 0.3 }}
       className="w-full max-w-md mx-auto"
     >
-      <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-2xl">
+      <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-2xl relative rounded-2xl">
+        {onClose && (
+          <X 
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 w-5 h-5 text-black/60 hover:text-black transition-colors cursor-pointer"
+            aria-label="Close"
+          />
+        )}
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center">
             <TrendingUp className="h-8 w-8 text-gray-700" />
@@ -112,13 +121,17 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess }) => {
                   placeholder="Enter your password"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                {showPassword ? (
+                  <EyeOff 
+                    onClick={() => setShowPassword(false)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/60 hover:text-black transition-colors cursor-pointer"
+                  />
+                ) : (
+                  <Eye 
+                    onClick={() => setShowPassword(true)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/60 hover:text-black transition-colors cursor-pointer"
+                  />
+                )}
               </div>
             </div>
 
@@ -167,34 +180,31 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess }) => {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-            >
-              {isLogin ? (
-                <>
-                  Don't have an account?{" "}
-                  <span className="text-gray-900 font-semibold">
-                    Sign up now
-                  </span>
-                </>
-              ) : (
-                <>
-                  Already have an account?{" "}
-                  <span className="text-gray-900 font-semibold">
-                    Sign in
-                  </span>
-                </>
-              )}
-            </button>
+          <div className="mt-6 text-center text-sm text-gray-600">
+            {isLogin ? (
+              <>
+                Don't have an account?{" "}
+                <span
+                  onClick={() => setIsLogin(false)}
+                  className="text-gray-900 underline underline-offset-4 hover:text-black cursor-pointer transition-colors"
+                >
+                  Sign up now
+                </span>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <span
+                  onClick={() => setIsLogin(true)}
+                  className="text-gray-900 underline underline-offset-4 hover:text-black cursor-pointer transition-colors"
+                >
+                  Sign in
+                </span>
+              </>
+            )}
           </div>
 
-          <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
-              💡 Demo: Use any email/password to test the platform
-            </p>
-          </div>
+         
         </CardContent>
       </Card>
     </motion.div>
