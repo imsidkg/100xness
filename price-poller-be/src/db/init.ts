@@ -36,14 +36,16 @@ export async function initDB() {
     WHERE table_name = 'balances' AND column_name = 'balance';
   `);
 
-  if (balanceColumnType.rows.length > 0 && balanceColumnType.rows[0].data_type === 'bigint') {
+  if (
+    balanceColumnType.rows.length > 0 &&
+    balanceColumnType.rows[0].data_type === "bigint"
+  ) {
     console.log("Altering 'balance' column to DOUBLE PRECISION...");
     await pool.query(`
       ALTER TABLE balances ALTER COLUMN balance TYPE DOUBLE PRECISION;
     `);
     console.log("'balance' column altered to DOUBLE PRECISION.");
   }
-
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS trades (
@@ -130,8 +132,8 @@ export async function initDB() {
   GROUP BY bucket, symbol;
 `);
 
-try {
-  await pool.query(`
+  try {
+    await pool.query(`
     SELECT add_continuous_aggregate_policy(
       'tickers_hourly',
       start_offset => INTERVAL '1 day',
@@ -139,26 +141,31 @@ try {
       schedule_interval => INTERVAL '1 minute'
     );
   `);
-} catch (error: any) {
-  if (
-    !(
-      error.code === '22023' &&
-      error.detail &&
-      error.detail.includes('refresh policy with the same start and end offset already exists')
-    ) &&
-    error.code !== '42710'
-  ) {
-    throw error;
+  } catch (error: any) {
+    if (
+      !(
+        error.code === "22023" &&
+        error.detail &&
+        error.detail.includes(
+          "refresh policy with the same start and end offset already exists"
+        )
+      ) &&
+      error.code !== "42710"
+    ) {
+      throw error;
+    }
   }
-}
 
-try {
-  await pool.query(`
+  try {
+    await pool.query(`
     CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_hourly', '2000-01-01', NOW());
   `);
-} catch (error) {
-  console.error("Error refreshing continuous aggregate tickers_hourly:", error);
-}
+  } catch (error) {
+    console.error(
+      "Error refreshing continuous aggregate tickers_hourly:",
+      error
+    );
+  }
 
   await pool.query(`
   CREATE MATERIALIZED VIEW IF NOT EXISTS tickers_1m
@@ -187,11 +194,13 @@ try {
   } catch (error: any) {
     if (
       !(
-        error.code === '22023' &&
+        error.code === "22023" &&
         error.detail &&
-        error.detail.includes('refresh policy with the same start and end offset already exists')
+        error.detail.includes(
+          "refresh policy with the same start and end offset already exists"
+        )
       ) &&
-      error.code !== '42710'
+      error.code !== "42710"
     ) {
       throw error;
     }
@@ -232,11 +241,13 @@ try {
   } catch (error: any) {
     if (
       !(
-        error.code === '22023' &&
+        error.code === "22023" &&
         error.detail &&
-        error.detail.includes('refresh policy with the same start and end offset already exists')
+        error.detail.includes(
+          "refresh policy with the same start and end offset already exists"
+        )
       ) &&
-      error.code !== '42710'
+      error.code !== "42710"
     ) {
       throw error;
     }
@@ -277,11 +288,13 @@ try {
   } catch (error: any) {
     if (
       !(
-        error.code === '22023' &&
+        error.code === "22023" &&
         error.detail &&
-        error.detail.includes('refresh policy with the same start and end offset already exists')
+        error.detail.includes(
+          "refresh policy with the same start and end offset already exists"
+        )
       ) &&
-      error.code !== '42710'
+      error.code !== "42710"
     ) {
       throw error;
     }
