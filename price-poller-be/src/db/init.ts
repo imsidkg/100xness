@@ -132,16 +132,22 @@ export async function initDB() {
 
 try {
   await pool.query(`
-  SELECT add_continuous_aggregate_policy(
-    'tickers_hourly',
-    start_offset => INTERVAL '1 day',
-    end_offset => INTERVAL '1 minute',
-    schedule_interval => INTERVAL '1 minute'
-  );
-`);
+    SELECT add_continuous_aggregate_policy(
+      'tickers_hourly',
+      start_offset => INTERVAL '1 day',
+      end_offset => INTERVAL '1 minute',
+      schedule_interval => INTERVAL '1 minute'
+    );
+  `);
 } catch (error: any) {
-  if (error.code !== '42710') {
-    console.error("Error adding continuous aggregate policy for tickers_hourly:", error);
+  if (
+    !(
+      error.code === '22023' &&
+      error.detail &&
+      error.detail.includes('refresh policy with the same start and end offset already exists')
+    ) &&
+    error.code !== '42710'
+  ) {
     throw error;
   }
 }
@@ -179,8 +185,14 @@ try {
       );
     `);
   } catch (error: any) {
-    if (error.code !== '42710') {
-      console.error("Error adding continuous aggregate policy for tickers_1m:", error);
+    if (
+      !(
+        error.code === '22023' &&
+        error.detail &&
+        error.detail.includes('refresh policy with the same start and end offset already exists')
+      ) &&
+      error.code !== '42710'
+    ) {
       throw error;
     }
   }
@@ -218,8 +230,14 @@ try {
       );
     `);
   } catch (error: any) {
-    if (error.code !== '42710') {
-      console.error("Error adding continuous aggregate policy for tickers_5m:", error);
+    if (
+      !(
+        error.code === '22023' &&
+        error.detail &&
+        error.detail.includes('refresh policy with the same start and end offset already exists')
+      ) &&
+      error.code !== '42710'
+    ) {
       throw error;
     }
   }
@@ -257,8 +275,14 @@ try {
       );
     `);
   } catch (error: any) {
-    if (error.code !== '42710') {
-      console.error("Error adding continuous aggregate policy for tickers_10m:", error);
+    if (
+      !(
+        error.code === '22023' &&
+        error.detail &&
+        error.detail.includes('refresh policy with the same start and end offset already exists')
+      ) &&
+      error.code !== '42710'
+    ) {
       throw error;
     }
   }
