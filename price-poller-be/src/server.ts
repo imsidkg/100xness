@@ -31,8 +31,38 @@ app.get("/candles/:symbol", getCandles);
 app.use("/api/v1/user", authRoutes); // Use authRoutes
 app.use("/api/v1/trade", tradeRoutes); // Use tradeRoutes
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-  startPriceListener(); // Start the price listener
-  setInterval(monitorTradesForLiquidation, 5000); // Monitor trades every 5 seconds
+  startPriceListener();
+  setInterval(monitorTradesForLiquidation, 5000);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(async () => {
+    const { pool } = await import('./config/db.js');
+    const { redis } = await import('./lib/redisClient.js');
+    await pool.end();
+    await redis.quit();
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(async () => {
+    const { pool } = await import('./config/db.js');
+    const { redis } = await import('./lib/redisClient.js');
+    await pool.end();
+    await redis.quit();
+    process.exit(0);
+  });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled rejection at:', promise, 'reason:', reason);
 });

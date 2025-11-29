@@ -13,12 +13,11 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Environment variables
+# Environment variables (keep .env.example and .env.production for reference)
 .env
 .env.local
 .env.development.local
 .env.test.local
-.env.production.local
 
 # IDEs and editors
 .idea/
