@@ -2,7 +2,7 @@ import { WebSocketServer } from 'ws';
 import http from 'http';
 import { BID_ASK_CHANNEL, redis, UNREALIZED_PNL_CHANNEL } from '../lib/redisClient';
 
-const WS_PORT = 3002;
+const WS_PORT = parseInt(process.env.WS_PORT || "3002");
 
 const TRADE_UPDATES_CHANNEL = "trade_updates"; // The new dedicated channel
 
