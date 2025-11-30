@@ -51,7 +51,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
           margin: trade.margin / 100,
           stop_loss: trade.stopLoss ? trade.stopLoss / 10000 : undefined,
           take_profit: trade.takeProfit ? trade.takeProfit / 10000 : undefined,
-          unrealized_pnl: 0 
+          unrealized_pnl: 0 // Will be updated in real-time via WebSocket
         }));
         setOpenTrades(trades);
       } else {
@@ -142,6 +142,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
         let data = JSON.parse(event.data);
         console.log("Parsed WebSocket data:", data);
         
+        // Handle wrapped format {channel: ..., data: ...}
         if (data.channel && data.data) {
           console.log("Detected wrapped format, channel:", data.channel);
           

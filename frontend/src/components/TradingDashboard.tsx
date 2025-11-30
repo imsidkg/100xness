@@ -3,13 +3,7 @@ import { useState, useEffect } from "react";
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
-  Wallet,
-  BarChart3,
-  Clock,
   Activity,
-  ChevronUp,
-  ChevronDown,
   Bitcoin,
   Coins,
 } from "lucide-react";
