@@ -145,9 +145,26 @@
 
 import { Pool } from "pg";
 
+export async function refreshMaterializedViews() {
+  const views = ['tickers_1m', 'tickers_5m', 'tickers_10m', 'tickers_hourly'];
+  
+  for (const view of views) {
+    try {
+      console.log(`Refreshing ${view}...`);
+      await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
+      console.log(`Refreshed ${view}`);
+    } catch (err: any) {
+      console.error(`Failed to refresh ${view}:`, err.message);
+    }
+  }
+}
+
+setInterval(refreshMaterializedViews, 5 * 60 * 1000);
+
+setTimeout(refreshMaterializedViews, 10000);
+
 const isNeon = process.env.DB_HOST?.includes('neon.tech');
 
-// For Neon, use smaller pool and handle reconnections
 const poolConfig = {
   user: process.env.DB_USER || "postgres",
   host: process.env.DB_HOST || "localhost",
