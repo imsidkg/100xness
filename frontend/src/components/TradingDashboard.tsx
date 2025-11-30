@@ -100,7 +100,7 @@ const TradingDashboard = ({
       margin,
     });
   };
-
+// @ts-ignore
   const getSymbolIcon = (symbolValue: string) => {
     const symbolData = symbolOptions.find((s) => s.value === symbolValue);
     return symbolData ? symbolData.icon : Coins;
