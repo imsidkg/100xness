@@ -12,13 +12,24 @@ const app = express();
 
 const port = parseInt(process.env.PORT || "3001");
 
-// CORS configuration
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()) || ["http://localhost:5173"];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
-
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -37,32 +48,32 @@ const server = app.listen(port, () => {
   setInterval(monitorTradesForLiquidation, 5000);
 });
 
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received, shutting down gracefully");
   server.close(async () => {
-    const { pool } = await import('./config/db.js');
-    const { redis } = await import('./lib/redisClient.js');
+    const { pool } = await import("./config/db.js");
+    const { redis } = await import("./lib/redisClient.js");
     await pool.end();
     await redis.quit();
     process.exit(0);
   });
 });
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
+process.on("SIGINT", async () => {
+  console.log("SIGINT received, shutting down gracefully");
   server.close(async () => {
-    const { pool } = await import('./config/db.js');
-    const { redis } = await import('./lib/redisClient.js');
+    const { pool } = await import("./config/db.js");
+    const { redis } = await import("./lib/redisClient.js");
     await pool.end();
     await redis.quit();
     process.exit(0);
   });
 });
 
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception:', err);
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled rejection at:", promise, "reason:", reason);
 });
