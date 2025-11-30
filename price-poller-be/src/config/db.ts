@@ -88,56 +88,131 @@
 
 
 
+// import { Pool } from "pg";
+
+// const isNeon = process.env.DB_HOST?.includes('neon.tech');
+
+// const pool = new Pool({
+//   user: process.env.DB_USER || "postgres",
+//   host: process.env.DB_HOST || "localhost",
+//   database: process.env.DB_NAME || "my_timescaledb",
+//   password: process.env.DB_PASSWORD || "newpassword",
+//   port: parseInt(process.env.DB_PORT || "5432"),
+//   ssl: process.env.DB_SSL === "true" 
+//     ? { 
+//         rejectUnauthorized: false,
+//       } 
+//     : false,
+//   // Neon-specific connection settings
+//   max: isNeon ? 1 : 10, // Neon pooler works better with fewer connections
+//   min: 0, // Allow pool to be empty
+//   idleTimeoutMillis: isNeon ? 0 : 30000, // Don't keep idle connections with Neon
+//   connectionTimeoutMillis: 10000,
+//   allowExitOnIdle: isNeon, // Allow the pool to close all connections and exit
+// });
+
+// pool.on("error", (err) => {
+//   console.error("❌ Database pool error:", err.message);
+//   // Don't exit on connection errors with Neon
+// });
+
+// pool.on("connect", (client) => {
+//   console.log("✅ Database connection established");
+  
+//   // Set statement timeout on the client
+//   if (isNeon) {
+//     client.query('SET statement_timeout = 30000').catch(err => {
+//       console.error("Failed to set statement timeout:", err.message);
+//     });
+//   }
+// });
+
+// // Test connection with proper error handling
+// async function testConnection() {
+//   try {
+//     const res = await pool.query("SELECT NOW()");
+//     console.log("✅ Database connected at:", res.rows[0].now);
+//   } catch (err: any) {
+//     console.error("❌ Database connection test failed:", err.message);
+//   }
+// }
+
+// // Run test after a small delay to allow pool to initialize
+// setTimeout(testConnection, 1000);
+
+// export { pool };
+
+
 import { Pool } from "pg";
 
 const isNeon = process.env.DB_HOST?.includes('neon.tech');
 
-const pool = new Pool({
+// For Neon, use smaller pool and handle reconnections
+const poolConfig = {
   user: process.env.DB_USER || "postgres",
   host: process.env.DB_HOST || "localhost",
   database: process.env.DB_NAME || "my_timescaledb",
   password: process.env.DB_PASSWORD || "newpassword",
   port: parseInt(process.env.DB_PORT || "5432"),
   ssl: process.env.DB_SSL === "true" 
-    ? { 
-        rejectUnauthorized: false,
-      } 
+    ? { rejectUnauthorized: false } 
     : false,
-  // Neon-specific connection settings
-  max: isNeon ? 1 : 10, // Neon pooler works better with fewer connections
-  min: 0, // Allow pool to be empty
-  idleTimeoutMillis: isNeon ? 0 : 30000, // Don't keep idle connections with Neon
+  // Neon-optimized settings
+  max: isNeon ? 3 : 10, // Smaller pool for Neon
+  min: 0,
+  idleTimeoutMillis: isNeon ? 1000 : 30000, // Aggressive timeout for Neon
   connectionTimeoutMillis: 10000,
-  allowExitOnIdle: isNeon, // Allow the pool to close all connections and exit
+  allowExitOnIdle: false, // Keep pool alive
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+};
+
+console.log('🔌 Database pool config:', {
+  host: poolConfig.host,
+  database: poolConfig.database,
+  max: poolConfig.max,
+  isNeon,
 });
 
-pool.on("error", (err) => {
-  console.error("❌ Database pool error:", err.message);
-  // Don't exit on connection errors with Neon
+const pool = new Pool(poolConfig);
+
+// Handle pool errors without crashing
+pool.on("error", (err, client) => {
+  console.error("❌ Unexpected pool error:", err.message);
+  // Don't exit, let the pool recover
 });
 
 pool.on("connect", (client) => {
   console.log("✅ Database connection established");
-  
-  // Set statement timeout on the client
-  if (isNeon) {
-    client.query('SET statement_timeout = 30000').catch(err => {
-      console.error("Failed to set statement timeout:", err.message);
-    });
-  }
 });
 
-// Test connection with proper error handling
-async function testConnection() {
-  try {
-    const res = await pool.query("SELECT NOW()");
-    console.log("✅ Database connected at:", res.rows[0].now);
-  } catch (err: any) {
-    console.error("❌ Database connection test failed:", err.message);
+pool.on("remove", (client) => {
+  console.log("⚠️  Database connection removed from pool");
+});
+
+// Test connection with retry logic
+async function testConnection(retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await pool.query("SELECT NOW()");
+      console.log("✅ Database connected at:", res.rows[0].now);
+      return;
+    } catch (err: any) {
+      console.error(`❌ Database connection test failed (attempt ${i + 1}/${retries}):`, err.message);
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before retry
+      }
+    }
   }
 }
 
-// Run test after a small delay to allow pool to initialize
-setTimeout(testConnection, 1000);
+// Test after pool initialization
+setTimeout(() => testConnection(), 1000);
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, closing pool...');
+  await pool.end();
+});
 
 export { pool };
