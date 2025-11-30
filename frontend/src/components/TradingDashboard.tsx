@@ -106,7 +106,6 @@ const TradingDashboard = ({
     return symbolData ? symbolData.icon : Coins;
   };
 
-  const SymbolIcon = getSymbolIcon(symbol);
 
   return (
     <div className="min-h-screen bg-white text-slate-900 p-6 w-full">
