@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_ENDPOINTS, WS_URL } from "../config/api";
 
 interface Trade {
   order_id: string;
@@ -35,7 +36,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:3001/api/v1/trade/open", {
+      const response = await fetch(API_ENDPOINTS.TRADE_OPEN, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -50,7 +51,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
           margin: trade.margin / 100,
           stop_loss: trade.stopLoss ? trade.stopLoss / 10000 : undefined,
           take_profit: trade.takeProfit ? trade.takeProfit / 10000 : undefined,
-          unrealized_pnl: 0 // Will be updated in real-time via WebSocket
+          unrealized_pnl: 0 
         }));
         setOpenTrades(trades);
       } else {
@@ -70,7 +71,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:3001/api/v1/trade/closed", {
+      const response = await fetch(API_ENDPOINTS.TRADE_CLOSED, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -94,7 +95,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
     if (!token) return;
     
     try {
-      const response = await fetch("http://localhost:3001/api/v1/trade/close", {
+      const response = await fetch(API_ENDPOINTS.TRADE_CLOSE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +132,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
   useEffect(() => {
     if (!token || activeTab !== "open") return;
 
-    const ws = new WebSocket("ws://localhost:3002");
+    const ws = new WebSocket(WS_URL);
 
     ws.onopen = () => console.log("Connected to WebSocket for real-time PnL updates");
 
@@ -141,7 +142,6 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
         let data = JSON.parse(event.data);
         console.log("Parsed WebSocket data:", data);
         
-        // Handle wrapped format {channel: ..., data: ...}
         if (data.channel && data.data) {
           console.log("Detected wrapped format, channel:", data.channel);
           

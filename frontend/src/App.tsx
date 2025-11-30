@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useState } from "react";
 import { LandingPage } from "./components/LandingPage";
 import TradingDashboard from "./components/TradingDashboard";
+import { API_ENDPOINTS, WS_URL } from "./config/api";
 
 type State = {
   candleData: any[];
@@ -138,7 +139,7 @@ function App() {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:3001/api/v1/user/account-summary", {
+      const response = await fetch(API_ENDPOINTS.ACCOUNT_SUMMARY, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -162,7 +163,7 @@ function App() {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/v1/trade", {
+      const response = await fetch(API_ENDPOINTS.TRADE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -207,7 +208,7 @@ function App() {
     }
 
     fetch(
-      `http://localhost:3001/candles/${state.symbol}?interval=${state.interval}`
+      `${API_ENDPOINTS.CANDLES(state.symbol)}?interval=${state.interval}`
     )
       .then((response) => response.json())
       .then((data) => {
@@ -228,7 +229,7 @@ function App() {
       });
 
     // WebSocket for real-time bid/ask updates
-    const ws = new WebSocket("ws://localhost:3002");
+    const ws = new WebSocket(WS_URL);
 
     ws.onopen = () =>
       console.log("Connected to WebSocket server for bid/ask updates");

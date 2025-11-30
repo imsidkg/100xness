@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { API_ENDPOINTS } from "../config/api";
 
 interface AuthProps {
   onAuthSuccess: () => void;
@@ -32,10 +33,10 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
     setMessage(null);
     setIsLoading(true);
 
-    const endpoint = isLogin ? "/api/v1/user/signin" : "/api/v1/user/signup";
+    const endpoint = isLogin ? API_ENDPOINTS.SIGNIN : API_ENDPOINTS.SIGNUP;
 
     try {
-      const response = await fetch(`http://localhost:3001${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -22,4 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables (keep .env.example and .env.production for reference)
 .env
+.env.local
+.env.development.local
+.env.test.local

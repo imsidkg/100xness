@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_ENDPOINTS } from "../config/api";
 
 interface AuthProps {
     onAuthSuccess: (balance: number) => void;
@@ -14,10 +15,10 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
     event.preventDefault();
     setMessage(null);
 
-    const endpoint = isLogin ? "/api/v1/user/signin" : "/api/v1/user/signup";
+    const endpoint = isLogin ? API_ENDPOINTS.SIGNIN : API_ENDPOINTS.SIGNUP;
 
     try {
-      const response = await fetch(`http://localhost:3001${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
