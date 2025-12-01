@@ -153,13 +153,14 @@ export async function getAggregatedData(symbol: string, bucket: string) {
     query = `
       SELECT bucket,
              symbol,
-             avg_trade_price,
-             avg_bid_price,
-             avg_ask_price,
+             open,
+             high,
+             low,
+             close,
              total_volume
       FROM tickers_hourly
       WHERE UPPER(symbol) = $1
-      ORDER BY bucket DESC
+      ORDER BY bucket ASC
       LIMIT 100;
     `;
     params = [symbol.toUpperCase()];
