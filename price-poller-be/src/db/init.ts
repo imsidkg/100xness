@@ -15,7 +15,7 @@ export async function initDB() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      id SERIAL PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL
     );
@@ -23,8 +23,8 @@ export async function initDB() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS balances (
-      user_id UUID PRIMARY KEY,
-      balance BIGINT NOT NULL, -- This will be altered to DOUBLE PRECISION
+      user_id INTEGER PRIMARY KEY,
+      balance DOUBLE PRECISION NOT NULL DEFAULT 0,
       FOREIGN KEY (user_id) REFERENCES users (id)
     );
   `);
@@ -50,11 +50,12 @@ export async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS trades (
       order_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id UUID NOT NULL,
+      user_id INTEGER NOT NULL,
       type TEXT NOT NULL, -- 'buy' or 'sell'
       margin DOUBLE PRECISION NOT NULL,
       leverage DOUBLE PRECISION NOT NULL,
       symbol TEXT NOT NULL,
+      quantity DOUBLE PRECISION NOT NULL DEFAULT 0,
       entry_price DOUBLE PRECISION NOT NULL,
       status TEXT NOT NULL DEFAULT 'open', -- 'open', 'closed', 'liquidated'
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
