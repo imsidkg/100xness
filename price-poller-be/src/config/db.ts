@@ -166,18 +166,18 @@ setTimeout(refreshMaterializedViews, 10000);
 const isNeon = process.env.DB_HOST?.includes('neon.tech');
 
 const poolConfig = {
-  user: process.env.DB_USER || "postgres",
+  user: process.env.DB_USER || "tradinguser",
   host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "my_timescaledb",
-  password: process.env.DB_PASSWORD || "newpassword",
+  database: process.env.DB_NAME || "trading_db",
+  password: process.env.DB_PASSWORD || "Trading@2024!Secure",
   port: parseInt(process.env.DB_PORT || "5432"),
   ssl: process.env.DB_SSL === "true" 
     ? { rejectUnauthorized: false } 
     : false,
-  // Neon-optimized settings
-  max: isNeon ? 5 : 10, // Moderate pool for Neon
-  min: isNeon ? 1 : 2, // Keep at least 1 connection alive
-  idleTimeoutMillis: isNeon ? 10000 : 30000, // Less aggressive timeout for Neon
+  // Optimized settings for local vs remote database
+  max: isNeon ? 5 : 20, // More connections for local DB
+  min: isNeon ? 1 : 2, // Keep at least 2 connections alive for local DB
+  idleTimeoutMillis: isNeon ? 10000 : 30000, // Standard timeout
   connectionTimeoutMillis: 10000,
   allowExitOnIdle: false, // Keep pool alive
   keepAlive: true,

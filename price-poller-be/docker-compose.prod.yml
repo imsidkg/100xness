@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Backend API Service
@@ -11,13 +11,13 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - WS_PORT=3002
-      # Neon PostgreSQL Database
-      - DB_USER=${DB_USER:-neondb_owner}
-      - DB_HOST=${DB_HOST:-ep-wispy-shadow-a4u4vn6o-pooler.us-east-1.aws.neon.tech}
-      - DB_NAME=${DB_NAME:-neondb}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_SSL=${DB_SSL:-true}
+      # Local PostgreSQL Database
+      - DB_USER=tradinguser
+      - DB_HOST=postgres
+      - DB_NAME=trading_db
+      - DB_PASSWORD=Trading@2024!Secure
+      - DB_PORT=5432
+      - DB_SSL=false
       # Redis (local on instance)
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -28,7 +28,10 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
     networks:
       - app-network
@@ -45,8 +48,30 @@ services:
     # Don't expose Redis port externally for security
     # Only accessible within Docker network
 
+  # PostgreSQL with TimescaleDB
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      - POSTGRES_USER=tradinguser
+      - POSTGRES_PASSWORD=Trading@2024!Secure
+      - POSTGRES_DB=trading_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app-network
+    # Don't expose PostgreSQL port externally for security
+    # Only accessible within Docker network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradinguser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   redis_data:
+    driver: local
+  postgres_data:
     driver: local
 
 networks:
