@@ -230,8 +230,15 @@ function App() {
               low: parseFloat(item.low),
               close: parseFloat(item.close),
             }))
-            //@ts-ignore
-            .sort((a, b) => a.time - b.time);
+            .filter((item: any) => 
+              !isNaN(item.time) && 
+              !isNaN(item.open) && 
+              !isNaN(item.high) && 
+              !isNaN(item.low) && 
+              !isNaN(item.close) &&
+              item.time > 0
+            )
+            .sort((a: any, b: any) => a.time - b.time);
 
           dispatch({ type: "SET_CANDLES", payload: transformedData });
         }
