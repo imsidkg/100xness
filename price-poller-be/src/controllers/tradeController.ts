@@ -39,7 +39,7 @@ export const tradeProcessor = async (
     return res.status(400).json({ message: "Invalid trade request format" });
   }
 
-  const userId = req.userId;
+  const userId: number = req.userId!;
   if (!userId) {
     return res.status(401).json({ message: "User not authenticated" });
   }

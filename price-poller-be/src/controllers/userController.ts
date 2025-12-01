@@ -29,7 +29,7 @@ export const signup = async (req: Request, res: Response) => {
         "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id",
         [email, hashedPassword]
       );
-      const userId = userResult.rows[0].id;
+  const userId: number = userResult.rows[0].id;
 
       const initialBalance = 5000;
       await client.query(
@@ -116,7 +116,7 @@ export const getAccountSummary = async (
   res: Response
 ) => {
   try {
-    const userId = req.userId;
+  const userId: number = req.userId!;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }

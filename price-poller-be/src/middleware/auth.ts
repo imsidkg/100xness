@@ -20,7 +20,7 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
     
-    req.userId = decoded.userId;
+  req.userId = Number(decoded.userId);
     next();
   });
 };

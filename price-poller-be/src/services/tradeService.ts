@@ -228,7 +228,7 @@ export const getOpenTrades = async (): Promise<Trade[]> => {
 };
 
 export const getUserOpenTrades = async (
-  userId: string | number
+  userId: number
 ): Promise<Trade[]> => {
   const query = `
     SELECT * FROM trades WHERE user_id = $1 AND status = 'open';
