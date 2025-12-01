@@ -253,6 +253,8 @@ function App() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data as string);
+        console.log("Raw WebSocket message:", event.data);
+        console.log("Parsed WebSocket data:", data);
 
         if (data.symbol && data.bid && data.ask) {
           dispatch({
@@ -274,6 +276,7 @@ function App() {
         }
 
         if (data.symbol && data.symbol.toLowerCase() === state.symbol.toLowerCase() && data.tradePrice && data.tradeTime) {
+          console.log("Dispatching UPDATE_LAST_CANDLE with:", data.tradePrice, data.tradeTime);
           dispatch({
             type: "UPDATE_LAST_CANDLE",
             payload: {
