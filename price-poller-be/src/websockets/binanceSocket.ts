@@ -18,16 +18,21 @@ export const fetchBinanceData = async (symbols: string[]) => {
       const parsedData = JSON.parse(data.toString());
       const trade: BinanceTrade = parsedData.data;
 
-      // Assuming 's' is symbol and 'p' is price from Binance trade data
       const symbol = trade.s.toLowerCase();
       const price = parseFloat(trade.p);
+      const tradeTime = trade.T;
       const askPrice = price * (1 + 0.005);
       const bidPrice = price * (1 - 0.005);
 
-      // Publish to BID_ASK_CHANNEL for real-time price updates
       await redis.publish(
         BID_ASK_CHANNEL,
-        JSON.stringify({ symbol, ask: askPrice, bid: bidPrice })
+        JSON.stringify({ 
+          symbol, 
+          ask: askPrice, 
+          bid: bidPrice,
+          tradePrice: price,
+          tradeTime: tradeTime
+        })
       );
 
       // Also push to the trade queue for other workers if needed
