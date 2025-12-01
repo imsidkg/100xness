@@ -47,7 +47,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         prices: {
           ...state.prices,
-          [action.payload.symbol]: {
+          [action.payload.symbol.toLowerCase()]: {
             bid: action.payload.bid,
             ask: action.payload.ask,
           },
