@@ -75,6 +75,7 @@ const TradingDashboard = ({
   const [margin, setMargin] = useState<number | undefined>(undefined);
   const [priceChange, setPriceChange] = useState<number>(0);
   const [isPriceUp, setIsPriceUp] = useState<boolean>(true);
+  const [tradesRefreshTrigger, setTradesRefreshTrigger] = useState<number>(0);
 
   const symbolOptions = [
     { value: "BTCUSDT", label: "BTC/USDT", icon: Bitcoin },
@@ -99,6 +100,7 @@ const TradingDashboard = ({
       takeProfit,
       margin,
     });
+    setTradesRefreshTrigger(prev => prev + 1);
   };
 // @ts-ignore
   const getSymbolIcon = (symbolValue: string) => {
@@ -489,7 +491,7 @@ const TradingDashboard = ({
         </motion.div>
       )} */}
       <div className="mt-6">
-        <Trades token={token} />
+        <Trades token={token} refreshTrigger={tradesRefreshTrigger} />
       </div>
     </div>
   );

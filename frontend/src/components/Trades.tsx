@@ -21,9 +21,10 @@ interface Trade {
 
 interface TradesProps {
   token: string | null;
+  refreshTrigger?: number;
 }
 
-const Trades: React.FC<TradesProps> = ({ token }) => {
+const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
   const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
   const [openTrades, setOpenTrades] = useState<Trade[]>([]);
   const [closedTrades, setClosedTrades] = useState<Trade[]>([]);
@@ -32,16 +33,16 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
 
   const fetchOpenTrades = async () => {
     if (!token) return;
-    
+
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(API_ENDPOINTS.TRADE_OPEN, {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const trades = data.trades.map((trade: any) => ({
@@ -51,7 +52,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
           margin: trade.margin / 100,
           stop_loss: trade.stopLoss ? trade.stopLoss / 10000 : undefined,
           take_profit: trade.takeProfit ? trade.takeProfit / 10000 : undefined,
-          unrealized_pnl: 0 // Will be updated in real-time via WebSocket
+          unrealized_pnl: 0, // Will be updated in real-time via WebSocket
         }));
         setOpenTrades(trades);
       } else {
@@ -67,16 +68,16 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
 
   const fetchClosedTrades = async () => {
     if (!token) return;
-    
+
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(API_ENDPOINTS.TRADE_CLOSED, {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setClosedTrades(data);
@@ -93,17 +94,17 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
 
   const closeTrade = async (orderId: string) => {
     if (!token) return;
-    
+
     try {
       const response = await fetch(API_ENDPOINTS.TRADE_CLOSE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ orderId })
+        body: JSON.stringify({ orderId }),
       });
-      
+
       if (response.ok) {
         alert("Trade closed successfully");
         fetchOpenTrades();
@@ -126,7 +127,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
         fetchClosedTrades();
       }
     }
-  }, [token, activeTab]);
+  }, [token, activeTab, refreshTrigger]);
 
   // Real-time PnL updates via WebSocket - Calculate PnL directly on frontend
   useEffect(() => {
@@ -134,32 +135,37 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
 
     const ws = new WebSocket(WS_URL);
 
-    ws.onopen = () => console.log("Connected to WebSocket for real-time PnL updates");
+    ws.onopen = () =>
+      console.log("Connected to WebSocket for real-time PnL updates");
 
     ws.onmessage = (event) => {
       try {
         console.log("Raw WebSocket message:", event.data);
         let data = JSON.parse(event.data);
         console.log("Parsed WebSocket data:", data);
-        
+
         // Handle wrapped format {channel: ..., data: ...}
         if (data.channel && data.data) {
           console.log("Detected wrapped format, channel:", data.channel);
-          
+
           // Handle unrealized PnL updates
           if (data.channel === "unrealized_pnl_updates") {
             const pnlData = data.data;
             console.log("Processing unrealized PnL update:", pnlData);
-            
+
             if (pnlData.userId && pnlData.unrealizedPnL) {
-              setOpenTrades(prevTrades => {
-                return prevTrades.map(trade => {
-                  const updatedTrade = pnlData.unrealizedPnL.find((t: any) => t.order_id === trade.order_id);
+              setOpenTrades((prevTrades) => {
+                return prevTrades.map((trade) => {
+                  const updatedTrade = pnlData.unrealizedPnL.find(
+                    (t: any) => t.order_id === trade.order_id
+                  );
                   if (updatedTrade) {
-                    console.log(`Updating trade ${trade.order_id} PnL to: ${updatedTrade.unrealized_pnl}`);
+                    console.log(
+                      `Updating trade ${trade.order_id} PnL to: ${updatedTrade.unrealized_pnl}`
+                    );
                     return {
                       ...trade,
-                      unrealized_pnl: updatedTrade.unrealized_pnl
+                      unrealized_pnl: updatedTrade.unrealized_pnl,
                     };
                   }
                   return trade;
@@ -167,26 +173,38 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
               });
             }
           }
-          
+
           // Handle bid/ask updates for direct calculation
-          if (data.channel === "bid_ask_updates" && data.data.symbol && data.data.tradePrice) {
+          if (
+            data.channel === "bid_ask_updates" &&
+            data.data.symbol &&
+            data.data.tradePrice
+          ) {
             const priceData = data.data;
-            console.log(`Updating PnL for ${priceData.symbol} at price ${priceData.tradePrice}`);
-            setOpenTrades(prevTrades => {
-              return prevTrades.map(trade => {
+            console.log(
+              `Updating PnL for ${priceData.symbol} at price ${priceData.tradePrice}`
+            );
+            setOpenTrades((prevTrades) => {
+              return prevTrades.map((trade) => {
                 if (trade.symbol === priceData.symbol) {
                   // Calculate PnL directly on frontend
                   let unrealized_pnl = 0;
                   if (trade.type === "buy") {
-                    unrealized_pnl = (priceData.tradePrice - trade.entry_price) * trade.quantity;
+                    unrealized_pnl =
+                      (priceData.tradePrice - trade.entry_price) *
+                      trade.quantity;
                   } else if (trade.type === "sell") {
-                    unrealized_pnl = (trade.entry_price - priceData.tradePrice) * trade.quantity;
+                    unrealized_pnl =
+                      (trade.entry_price - priceData.tradePrice) *
+                      trade.quantity;
                   }
-                  
-                  console.log(`Trade ${trade.order_id} PnL calculated to: ${unrealized_pnl}`);
+
+                  console.log(
+                    `Trade ${trade.order_id} PnL calculated to: ${unrealized_pnl}`
+                  );
                   return {
                     ...trade,
-                    unrealized_pnl
+                    unrealized_pnl,
                   };
                 }
                 return trade;
@@ -195,7 +213,11 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
           }
         }
       } catch (error) {
-        console.error("Error processing WebSocket message for PnL:", error, event.data);
+        console.error(
+          "Error processing WebSocket message for PnL:",
+          error,
+          event.data
+        );
       }
     };
 
@@ -208,16 +230,16 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
   }, [token, activeTab]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
   const formatNumber = (num: number, decimals: number = 2) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
+      maximumFractionDigits: decimals,
     }).format(num);
   };
 
@@ -236,7 +258,7 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-4">Your Trades</h2>
-      
+
       <div className="flex mb-4">
         <button
           className={`px-4 py-2 font-medium rounded-t-lg ${
@@ -261,7 +283,9 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
       </div>
 
       {loading && <div className="text-center py-4">Loading trades...</div>}
-      {error && <div className="text-red-600 bg-red-100 p-3 rounded mb-4">{error}</div>}
+      {error && (
+        <div className="text-red-600 bg-red-100 p-3 rounded mb-4">{error}</div>
+      )}
 
       {activeTab === "open" && (
         <div className="overflow-x-auto">
@@ -284,22 +308,34 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
               {openTrades.map((trade) => (
                 <tr key={trade.order_id} className="border-b hover:bg-gray-50">
                   <td className="px-4 py-2 font-medium">{trade.symbol}</td>
-                  <td className={`px-4 py-2 font-medium ${
-                    trade.type === "buy" ? "text-green-600" : "text-red-600"
-                  }`}>
+                  <td
+                    className={`px-4 py-2 font-medium ${
+                      trade.type === "buy" ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
                     {trade.type.toUpperCase()}
                   </td>
-                  <td className="px-4 py-2">{formatNumber(trade.entry_price, 4)}</td>
-                  <td className="px-4 py-2">{formatNumber(trade.quantity, 6)}</td>
+                  <td className="px-4 py-2">
+                    {formatNumber(trade.entry_price, 4)}
+                  </td>
+                  <td className="px-4 py-2">
+                    {formatNumber(trade.quantity, 6)}
+                  </td>
                   <td className="px-4 py-2">{formatCurrency(trade.margin)}</td>
                   <td className="px-4 py-2">{trade.leverage}x</td>
                   <td className="px-4 py-2">
                     {trade.stop_loss ? formatNumber(trade.stop_loss, 4) : "-"}
                   </td>
                   <td className="px-4 py-2">
-                    {trade.take_profit ? formatNumber(trade.take_profit, 4) : "-"}
+                    {trade.take_profit
+                      ? formatNumber(trade.take_profit, 4)
+                      : "-"}
                   </td>
-                  <td className={`px-4 py-2 font-medium ${getPnLColor(trade.unrealized_pnl || 0)}`}>
+                  <td
+                    className={`px-4 py-2 font-medium ${getPnLColor(
+                      trade.unrealized_pnl || 0
+                    )}`}
+                  >
                     {formatCurrency(trade.unrealized_pnl || 0)}
                   </td>
                   <td className="px-4 py-2">
@@ -343,32 +379,46 @@ const Trades: React.FC<TradesProps> = ({ token }) => {
               {closedTrades.map((trade) => (
                 <tr key={trade.order_id} className="border-b hover:bg-gray-50">
                   <td className="px-4 py-2 font-medium">{trade.symbol}</td>
-                  <td className={`px-4 py-2 font-medium ${
-                    trade.type === "buy" ? "text-green-600" : "text-red-600"
-                  }`}>
+                  <td
+                    className={`px-4 py-2 font-medium ${
+                      trade.type === "buy" ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
                     {trade.type.toUpperCase()}
                   </td>
-                  <td className="px-4 py-2">{formatNumber(trade.entry_price, 4)}</td>
+                  <td className="px-4 py-2">
+                    {formatNumber(trade.entry_price, 4)}
+                  </td>
                   <td className="px-4 py-2">
                     {trade.exit_price ? formatNumber(trade.exit_price, 4) : "-"}
                   </td>
-                  <td className="px-4 py-2">{formatNumber(trade.quantity, 6)}</td>
+                  <td className="px-4 py-2">
+                    {formatNumber(trade.quantity, 6)}
+                  </td>
                   <td className="px-4 py-2">{formatCurrency(trade.margin)}</td>
                   <td className="px-4 py-2">{trade.leverage}x</td>
-                  <td className={`px-4 py-2 font-medium ${getPnLColor(trade.realized_pnl || 0)}`}>
+                  <td
+                    className={`px-4 py-2 font-medium ${getPnLColor(
+                      trade.realized_pnl || 0
+                    )}`}
+                  >
                     {formatCurrency(trade.realized_pnl || 0)}
                   </td>
                   <td className="px-4 py-2">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      trade.status === "closed" 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-red-100 text-red-800"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        trade.status === "closed"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {trade.status}
                     </span>
                   </td>
                   <td className="px-4 py-2 text-sm">
-                    {trade.closed_at ? new Date(trade.closed_at).toLocaleString() : "-"}
+                    {trade.closed_at
+                      ? new Date(trade.closed_at).toLocaleString()
+                      : "-"}
                   </td>
                 </tr>
               ))}
