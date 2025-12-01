@@ -19,7 +19,10 @@ type Action =
       type: "UPDATE_LAST_CANDLE";
       payload: { tradePrice: number; tradeTime: number };
     }
-  | { type: "SET_BID_ASK"; payload: { symbol: string; bid: string; ask: string } };
+  | {
+      type: "SET_BID_ASK";
+      payload: { symbol: string; bid: string; ask: string };
+    };
 
 const symbolOptions = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
 
@@ -114,14 +117,16 @@ function App() {
     totalMarginUsed: number;
     totalUnrealizedPnl: number;
   };
-  const [accountSummary, setAccountSummary] = useState<AccountSummary | null>(null);
+  const [accountSummary, setAccountSummary] = useState<AccountSummary | null>(
+    null
+  );
   const [quantity] = useState<number>(0.001);
   const [margin] = useState<number | undefined>(undefined);
   const [leverage] = useState<number>(1);
   const [stopLoss] = useState<number | undefined>(undefined);
   const [takeProfit] = useState<number | undefined>(undefined);
   const [tradeError, setTradeError] = useState<string | null>(null);
-  
+
   const handleAuthSuccess = () => {
     setIsLoggedIn(true);
     fetchAccountSummary();
@@ -141,10 +146,10 @@ function App() {
     try {
       const response = await fetch(API_ENDPOINTS.ACCOUNT_SUMMARY, {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setAccountSummary(data);
@@ -167,7 +172,7 @@ function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           type,
@@ -190,7 +195,7 @@ function App() {
           errorMessage = errorData.message || errorMessage;
         } catch (jsonError) {
           // If response is not JSON, try to get plain text or use generic message
-          errorMessage = await response.text() || errorMessage;
+          errorMessage = (await response.text()) || errorMessage;
         }
         setTradeError(errorMessage); // Set error message
       }
@@ -207,9 +212,7 @@ function App() {
       fetchAccountSummary();
     }
 
-    fetch(
-      `${API_ENDPOINTS.CANDLES(state.symbol)}?interval=${state.interval}`
-    )
+    fetch(`${API_ENDPOINTS.CANDLES(state.symbol)}?interval=${state.interval}`)
       .then((response) => response.json())
       .then((data) => {
         if (data.data) {
@@ -237,26 +240,26 @@ function App() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data as string);
-        
+
         if (data.symbol && data.bid && data.ask) {
-            dispatch({
-                type: "SET_BID_ASK",
-                payload: {
-                    symbol: data.symbol,
-                    bid: parseFloat(data.bid).toFixed(2),
-                    ask: parseFloat(data.ask).toFixed(2),
-                },
-            });
+          dispatch({
+            type: "SET_BID_ASK",
+            payload: {
+              symbol: data.symbol,
+              bid: parseFloat(data.bid).toFixed(2),
+              ask: parseFloat(data.ask).toFixed(2),
+            },
+          });
         }
 
-        if (data.symbol === state.symbol && data.tradePrice && data.tradeTime) {
-            dispatch({
-              type: "UPDATE_LAST_CANDLE",
-              payload: {
-                tradePrice: data.tradePrice,
-                tradeTime: data.tradeTime,
-              },
-            });
+        if (data.symbol && data.symbol.toLowerCase() === state.symbol.toLowerCase() && data.tradePrice && data.tradeTime) {
+          dispatch({
+            type: "UPDATE_LAST_CANDLE",
+            payload: {
+              tradePrice: data.tradePrice,
+              tradeTime: data.tradeTime,
+            },
+          });
         }
       } catch (error) {
         console.error("Error processing WebSocket message:", error, event.data);
@@ -289,8 +292,12 @@ function App() {
           candleData={state.candleData}
           onTrade={handleTrade}
           tradeError={tradeError}
-          onSymbolChange={(symbol) => dispatch({ type: "SET_SYMBOL", payload: symbol })}
-          onIntervalChange={(interval) => dispatch({ type: "SET_INTERVAL", payload: interval })}
+          onSymbolChange={(symbol) =>
+            dispatch({ type: "SET_SYMBOL", payload: symbol })
+          }
+          onIntervalChange={(interval) =>
+            dispatch({ type: "SET_INTERVAL", payload: interval })
+          }
           onLogout={handleLogout}
           userEmail={userEmail}
           token={localStorage.getItem("token")}
