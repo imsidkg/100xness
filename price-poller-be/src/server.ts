@@ -79,6 +79,7 @@ import {
   monitorTradesForLiquidation,
 } from "./services/tradeService";
 import { refreshMaterializedViews } from "./config/db";
+import { initDB } from "./db/init";
 
 const app = express();
 
@@ -105,16 +106,19 @@ app.get("/candles/:symbol", getCandles);
 app.use("/api/v1/user", authRoutes);
 app.use("/api/v1/trade", tradeRoutes);
 
-const server = app.listen(port, () => {
+const server = app.listen(port, async () => {
   console.log(`Server is running on http://localhost:${port}`);
+  
+  console.log("Initializing database...");
+  await initDB();
+  console.log("Database initialized");
+  
   startPriceListener();
   setInterval(monitorTradesForLiquidation, 5000);
   
-  // Start auto-refresh of materialized views every 5 minutes
-  console.log("✅ Starting materialized view auto-refresh (every 5 minutes)");
+  console.log(" Starting materialized view auto-refresh (every 5 minutes)");
   setInterval(refreshMaterializedViews, 5 * 60 * 1000);
   
-  // Initial refresh after 10 seconds
   setTimeout(refreshMaterializedViews, 10000);
 });
 
