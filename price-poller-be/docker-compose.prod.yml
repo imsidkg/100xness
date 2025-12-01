@@ -25,13 +25,11 @@ services:
       - REDIS_DB=0
       - REDIS_TLS=false
       # Application
-      - JWT_SECRET=${JWT_SECRET}
-      - CORS_ORIGIN=${CORS_ORIGIN}
+      - JWT_SECRET=${JWT_SECRET:-EiWpkFAm84GHJaL0NU9Hrradik3dpy2B}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://100xness.imsidkg.me}
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
+      - postgres
+      - redis
     restart: unless-stopped
     networks:
       - app-network
