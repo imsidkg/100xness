@@ -175,9 +175,9 @@ const poolConfig = {
     ? { rejectUnauthorized: false } 
     : false,
   // Neon-optimized settings
-  max: isNeon ? 3 : 10, // Smaller pool for Neon
-  min: 0,
-  idleTimeoutMillis: isNeon ? 1000 : 30000, // Aggressive timeout for Neon
+  max: isNeon ? 5 : 10, // Moderate pool for Neon
+  min: isNeon ? 1 : 2, // Keep at least 1 connection alive
+  idleTimeoutMillis: isNeon ? 10000 : 30000, // Less aggressive timeout for Neon
   connectionTimeoutMillis: 10000,
   allowExitOnIdle: false, // Keep pool alive
   keepAlive: true,
