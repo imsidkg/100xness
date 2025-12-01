@@ -22,7 +22,8 @@ type Action =
   | {
       type: "SET_BID_ASK";
       payload: { symbol: string; bid: string; ask: string };
-    };
+    }
+  | { type: "UPDATE_CURRENT_PRICE"; payload: number };
 
 const symbolOptions = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
 
@@ -52,6 +53,11 @@ function reducer(state: State, action: Action): State {
             ask: action.payload.ask,
           },
         },
+      };
+    case "UPDATE_CURRENT_PRICE":
+      return {
+        ...state,
+        currentPrice: action.payload,
       };
     case "UPDATE_LAST_CANDLE":
       const { tradePrice, tradeTime } = action.payload;
@@ -250,6 +256,14 @@ function App() {
               ask: parseFloat(data.ask).toFixed(2),
             },
           });
+
+          if (data.symbol.toLowerCase() === state.symbol.toLowerCase()) {
+            const midPrice = (parseFloat(data.bid) + parseFloat(data.ask)) / 2;
+            dispatch({
+              type: "UPDATE_CURRENT_PRICE",
+              payload: midPrice,
+            });
+          }
         }
 
         if (data.symbol && data.symbol.toLowerCase() === state.symbol.toLowerCase() && data.tradePrice && data.tradeTime) {
