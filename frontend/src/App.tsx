@@ -62,6 +62,12 @@ function reducer(state: State, action: Action): State {
     case "UPDATE_LAST_CANDLE":
       const { tradePrice, tradeTime } = action.payload;
 
+      // Validate input
+      if (!tradePrice || !tradeTime || isNaN(tradePrice) || isNaN(tradeTime)) {
+        console.warn("Invalid trade data:", action.payload);
+        return state;
+      }
+
       const intervalString = state.interval;
       let intervalSeconds = 60; // default to 1m
       if (intervalString.endsWith("m")) {
@@ -81,31 +87,47 @@ function reducer(state: State, action: Action): State {
 
       if (lastCandle && candleTime === lastCandle.time) {
         // Trade belongs to the last candle in the state -> UPDATE
+        // Ensure all values are valid numbers
+        const open = Number(lastCandle.open);
+        const high = Number(Math.max(lastCandle.high, tradePrice));
+        const low = Number(Math.min(lastCandle.low, tradePrice));
+        const close = Number(tradePrice);
+        
+        if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
+          console.warn("Invalid candle values after update:", { open, high, low, close });
+          return state;
+        }
+        
         const updatedCandle = {
-          ...lastCandle,
-          high: Math.max(lastCandle.high, tradePrice),
-          low: Math.min(lastCandle.low, tradePrice),
-          close: tradePrice,
+          time: candleTime,
+          open,
+          high,
+          low,
+          close,
         };
+        
         return {
           ...state,
           currentPrice: tradePrice,
           candleData: [...state.candleData.slice(0, -1), updatedCandle],
         };
-      } else {
+      } else if (candleTime > (lastCandle?.time || 0)) {
+        // Only add new candle if it's newer than the last one
         const newCandle = {
           time: candleTime,
-          open: tradePrice,
-          high: tradePrice,
-          low: tradePrice,
-          close: tradePrice,
+          open: Number(tradePrice),
+          high: Number(tradePrice),
+          low: Number(tradePrice),
+          close: Number(tradePrice),
         };
+        
         return {
           ...state,
           currentPrice: tradePrice,
           candleData: [...state.candleData, newCandle],
         };
       }
+      return state;
     default:
       return state;
   }
@@ -275,15 +297,26 @@ function App() {
           }
         }
 
-        if (data.symbol && data.symbol.toLowerCase() === state.symbol.toLowerCase() && data.tradePrice && data.tradeTime) {
-          console.log("Dispatching UPDATE_LAST_CANDLE with:", data.tradePrice, data.tradeTime);
-          dispatch({
-            type: "UPDATE_LAST_CANDLE",
-            payload: {
+        if (data.symbol && data.tradePrice && data.tradeTime) {
+          const incomingSymbol = data.symbol.toLowerCase();
+          const currentSymbol = state.symbol.toLowerCase();
+          
+          if (incomingSymbol === currentSymbol) {
+            console.log("Dispatching UPDATE_LAST_CANDLE with:", {
+              symbol: incomingSymbol,
               tradePrice: data.tradePrice,
               tradeTime: data.tradeTime,
-            },
-          });
+              candleDataLength: state.candleData.length
+            });
+            
+            dispatch({
+              type: "UPDATE_LAST_CANDLE",
+              payload: {
+                tradePrice: parseFloat(data.tradePrice),
+                tradeTime: parseInt(data.tradeTime),
+              },
+            });
+          }
         }
       } catch (error) {
         console.error("Error processing WebSocket message:", error, event.data);
