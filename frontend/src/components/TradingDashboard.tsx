@@ -138,7 +138,6 @@ const TradingDashboard = ({
             <Card className="bg-transparent shadow-none border-0">
               <CardContent className="p-0">
                 <motion.div
-                  key={currentPrice}
                   initial={{ scale: 1.1, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   className="text-2xl font-bold"
@@ -294,13 +293,13 @@ const TradingDashboard = ({
                   data={candleData}
                   colors={{
                     backgroundColor: "#ffffff",
-                    textColor: "#000000",
-                    upColor: "#22c55e",
-                    downColor: "#ef4444",
-                    borderUpColor: "#16a34a",
-                    borderDownColor: "#dc2626",
-                    wickUpColor: "#22c55e",
-                    wickDownColor: "#ef4444",
+                    textColor: "#2c3e50",
+                    upColor: "#26a69a",
+                    downColor: "#ef5350",
+                    borderUpColor: "#26a69a",
+                    borderDownColor: "#ef5350",
+                    wickUpColor: "#26a69a",
+                    wickDownColor: "#ef5350",
                   }}
                 />
               </CardContent>
