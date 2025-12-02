@@ -24,6 +24,11 @@ services:
       - REDIS_TLS=${REDIS_TLS}
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - postgres
       - redis
@@ -33,7 +38,7 @@ services:
 
   # PostgreSQL with TimescaleDB
   postgres:
-    image: timescale/timescaledb:latest-pg15
+    image: timescale/timescaledb:latest-pg16
     environment:
       - POSTGRES_DB=my_timescaledb
       - POSTGRES_USER=postgres
@@ -42,6 +47,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     networks:
       - app-network
@@ -53,6 +63,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     networks:
       - app-network
