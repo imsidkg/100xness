@@ -177,6 +177,10 @@ const poolConfig = {
   keepAliveInitialDelayMillis: 10000,
 };
 
+console.log(
+  "DEBUG PASSWORD USED BY POOL:",
+  JSON.stringify(poolConfig.password)
+);
 if (
   !poolConfig.user ||
   !poolConfig.password ||
