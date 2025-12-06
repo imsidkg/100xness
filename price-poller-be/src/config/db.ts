@@ -35,7 +35,6 @@
 
 // export { pool };
 
-
 // import { Pool } from "pg";
 
 // const isNeon = process.env.DB_HOST?.includes('neon.tech');
@@ -46,15 +45,15 @@
 //   database: process.env.DB_NAME || "my_timescaledb",
 //   password: process.env.DB_PASSWORD || "newpassword",
 //   port: parseInt(process.env.DB_PORT || "5432"),
-//   ssl: process.env.DB_SSL === "true" 
-//     ? { 
+//   ssl: process.env.DB_SSL === "true"
+//     ? {
 //         rejectUnauthorized: false,
 //         // Neon requires these additional SSL options
-//         ...(isNeon && { 
+//         ...(isNeon && {
 //           require: true,
-//           ca: undefined 
+//           ca: undefined
 //         })
-//       } 
+//       }
 //     : false,
 //   max: 10,
 //   min: 2,
@@ -85,9 +84,6 @@
 
 // export { pool };
 
-
-
-
 // import { Pool } from "pg";
 
 // const isNeon = process.env.DB_HOST?.includes('neon.tech');
@@ -98,10 +94,10 @@
 //   database: process.env.DB_NAME || "my_timescaledb",
 //   password: process.env.DB_PASSWORD || "newpassword",
 //   port: parseInt(process.env.DB_PORT || "5432"),
-//   ssl: process.env.DB_SSL === "true" 
-//     ? { 
+//   ssl: process.env.DB_SSL === "true"
+//     ? {
 //         rejectUnauthorized: false,
-//       } 
+//       }
 //     : false,
 //   // Neon-specific connection settings
 //   max: isNeon ? 1 : 10, // Neon pooler works better with fewer connections
@@ -118,7 +114,7 @@
 
 // pool.on("connect", (client) => {
 //   console.log("✅ Database connection established");
-  
+
 //   // Set statement timeout on the client
 //   if (isNeon) {
 //     client.query('SET statement_timeout = 30000').catch(err => {
@@ -142,12 +138,11 @@
 
 // export { pool };
 
-
 import { Pool } from "pg";
 
 export async function refreshMaterializedViews() {
-  const views = ['tickers_1m', 'tickers_5m', 'tickers_10m', 'tickers_hourly'];
-  
+  const views = ["tickers_1m", "tickers_5m", "tickers_10m", "tickers_hourly"];
+
   for (const view of views) {
     try {
       console.log(`Refreshing ${view}...`);
@@ -163,17 +158,15 @@ setInterval(refreshMaterializedViews, 5 * 60 * 1000);
 
 setTimeout(refreshMaterializedViews, 10000);
 
-const isNeon = process.env.DB_HOST?.includes('neon.tech');
+const isNeon = process.env.DB_HOST?.includes("neon.tech");
 
 const poolConfig = {
-  user: process.env.DB_USER || "tradinguser",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "trading_db",
-  password: process.env.DB_PASSWORD || "Trading@2024!Secure",
-  port: parseInt(process.env.DB_PORT || "5432"),
-  ssl: process.env.DB_SSL === "true" 
-    ? { rejectUnauthorized: false } 
-    : false,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: Number(process.env.DB_PORT),
+  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
   // Optimized settings for local vs remote database
   max: isNeon ? 5 : 20, // More connections for local DB
   min: isNeon ? 1 : 2, // Keep at least 2 connections alive for local DB
@@ -184,7 +177,16 @@ const poolConfig = {
   keepAliveInitialDelayMillis: 10000,
 };
 
-console.log('🔌 Database pool config:', {
+if (
+  !poolConfig.user ||
+  !poolConfig.password ||
+  !poolConfig.host ||
+  !poolConfig.database
+) {
+  throw new Error("❌ Missing required database environment variables");
+}
+
+console.log("🔌 Database pool config:", {
   host: poolConfig.host,
   database: poolConfig.database,
   max: poolConfig.max,
@@ -215,9 +217,12 @@ async function testConnection(retries = 3) {
       console.log("✅ Database connected at:", res.rows[0].now);
       return;
     } catch (err: any) {
-      console.error(`❌ Database connection test failed (attempt ${i + 1}/${retries}):`, err.message);
+      console.error(
+        `❌ Database connection test failed (attempt ${i + 1}/${retries}):`,
+        err.message
+      );
       if (i < retries - 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before retry
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s before retry
       }
     }
   }
@@ -227,8 +232,8 @@ async function testConnection(retries = 3) {
 setTimeout(() => testConnection(), 1000);
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, closing pool...');
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received, closing pool...");
   await pool.end();
 });
 
