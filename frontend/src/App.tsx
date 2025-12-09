@@ -274,9 +274,22 @@ function App() {
 
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data as string);
+        let data = JSON.parse(event.data as string);
         console.log("Raw WebSocket message:", event.data);
         console.log("Parsed WebSocket data:", data);
+
+        // Handle wrapped format {channel: ..., data: ...}
+        if (data.channel && data.data) {
+          console.log("Detected wrapped format, channel:", data.channel);
+          
+          // Only process bid_ask_updates channel
+          if (data.channel === "bid_ask_updates") {
+            data = data.data; // Extract the actual data
+          } else {
+            // Ignore other channels (like unrealized_pnl_updates)
+            return;
+          }
+        }
 
         if (data.symbol && data.bid && data.ask) {
           dispatch({
