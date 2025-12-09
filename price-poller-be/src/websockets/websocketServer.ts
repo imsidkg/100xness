@@ -1,6 +1,10 @@
-import { WebSocketServer } from 'ws';
-import http from 'http';
-import { BID_ASK_CHANNEL, redis, UNREALIZED_PNL_CHANNEL } from '../lib/redisClient';
+import { WebSocketServer } from "ws";
+import http from "http";
+import {
+  BID_ASK_CHANNEL,
+  redis,
+  UNREALIZED_PNL_CHANNEL,
+} from "../lib/redisClient";
 
 const WS_PORT = parseInt(process.env.WS_PORT || "3002");
 
@@ -10,34 +14,39 @@ export const startWebSocketServer = () => {
   const server = http.createServer();
   const wss = new WebSocketServer({ server });
 
-  wss.on('connection', ws => {
-    console.log('WebSocket client connected');
-    ws.on('close', () => console.log('WebSocket client disconnected'));
-    ws.on('error', error => console.error('WebSocket error:', error));
+  wss.on("connection", (ws) => {
+    console.log("WebSocket client connected");
+    ws.on("close", () => console.log("WebSocket client disconnected"));
+    ws.on("error", (error) => console.error("WebSocket error:", error));
   });
 
   const subscriber = redis.duplicate();
 
   // Subscribe to all relevant channels
-  subscriber.subscribe(BID_ASK_CHANNEL, TRADE_UPDATES_CHANNEL, UNREALIZED_PNL_CHANNEL, (err, count) => {
-    if (err) {
-      return console.error("Failed to subscribe to Redis channels:", err);
+  subscriber.subscribe(
+    BID_ASK_CHANNEL,
+    TRADE_UPDATES_CHANNEL,
+    UNREALIZED_PNL_CHANNEL,
+    (err, count) => {
+      if (err) {
+        return console.error("Failed to subscribe to Redis channels:", err);
+      }
+      console.log(`Subsc ribed to ${count} channel(s).`);
     }
-    console.log(`Subsc ribed to ${count} channel(s).`);
-  });
+  );
 
-  subscriber.on('message', (channel, message) => {
+  subscriber.on("message", (channel, message) => {
     try {
       console.log(`Received message on channel ${channel}:`, message);
       // Parse the message from Redis
       const parsedMessage = JSON.parse(message);
-      
+
       // For bid/ask updates, send the raw data structure that frontend expects
       if (channel === BID_ASK_CHANNEL) {
         console.log("Processing bid/ask update:", parsedMessage);
         const outgoingPayload = JSON.stringify(parsedMessage);
         console.log(`Sending to ${wss.clients.size} clients:`, outgoingPayload);
-        wss.clients.forEach(client => {
+        wss.clients.forEach((client) => {
           if (client.readyState === client.OPEN) {
             client.send(outgoingPayload);
           }
@@ -50,14 +59,17 @@ export const startWebSocketServer = () => {
           data: parsedMessage,
         });
 
-        wss.clients.forEach(client => {
+        wss.clients.forEach((client) => {
           if (client.readyState === client.OPEN) {
             client.send(outgoingPayload);
           }
         });
       }
     } catch (error) {
-      console.error(`Error parsing or sending message on channel ${channel}:`, error);
+      console.error(
+        `Error parsing or sending message on channel ${channel}:`,
+        error
+      );
     }
   });
 

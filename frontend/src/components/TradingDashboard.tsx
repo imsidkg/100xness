@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import {
   TrendingUp,
   TrendingDown,
-  Activity,
   Bitcoin,
   Coins,
 } from "lucide-react";
@@ -118,15 +117,7 @@ const TradingDashboard = ({
         className="flex items-center justify-between mb-8"
       >
         <div className="flex items-center space-x-3">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          >
-            <Activity className="h-8 w-8 text-purple-400" />
-          </motion.div>
-          <h1 className="text-3xl font-bold text-amber-500">
-            100xness
-          </h1>
+          <img src="/logo.svg" alt="100xness Logo" className="h-7" />
         </div>
 
         <div className="flex items-center space-x-4">
@@ -140,7 +131,7 @@ const TradingDashboard = ({
                 <motion.div
                   initial={{ scale: 1.1, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="text-2xl font-bold"
+                  className="font-mono"
                 >
                   ${currentPrice?.toFixed(2) || "0.00"}
                 </motion.div>

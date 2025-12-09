@@ -26,23 +26,22 @@ if (process.env.REDIS_TLS === "true") {
 
 const redis = new Redis(redisConfig);
 
-redis.on('error', (err) => {
-  console.error('Redis error:', err.message);
+redis.on("error", (err) => {
+  console.error("Redis error:", err.message);
 });
 
-redis.on('connect', () => {
-  console.log('Redis connected');
+redis.on("connect", () => {
+  console.log("Redis connected");
 });
 
-redis.on('ready', () => {
-  console.log('Redis ready');
+redis.on("ready", () => {
+  console.log("Redis ready");
 });
 
-redis.on('reconnecting', () => {
-  console.log('Redis reconnecting');
+redis.on("reconnecting", () => {
+  console.log("Redis reconnecting");
 });
 
 export { redis };
 export const BID_ASK_CHANNEL = "bid_ask_updates";
 export const UNREALIZED_PNL_CHANNEL = "unrealized_pnl_updates";
-

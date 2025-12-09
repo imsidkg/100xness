@@ -1,16 +1,22 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  UserPlus, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  UserPlus,
   LogIn,
   TrendingUp,
-  X
+  X,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -21,7 +27,10 @@ interface AuthCardProps {
   onClose?: () => void;
 }
 
-export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) => {
+export const AuthCard: React.FC<AuthCardProps> = ({
+  onAuthSuccess,
+  onClose,
+}) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [message, setMessage] = useState<string | null>(null);
@@ -73,7 +82,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) =>
     >
       <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-2xl relative rounded-2xl">
         {onClose && (
-          <X 
+          <X
             onClick={onClose}
             className="absolute top-4 right-4 z-10 w-5 h-5 text-black/60 hover:text-black transition-colors cursor-pointer"
             aria-label="Close"
@@ -87,14 +96,18 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) =>
             {isLogin ? "Welcome Back" : "Create Account"}
           </CardTitle>
           <CardDescription className="text-gray-600">
-            {isLogin ? "Sign in to your trading account" : "Start your trading journey today"}
+            {isLogin
+              ? "Sign in to your trading account"
+              : "Start your trading journey today"}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700">Email</Label>
+              <Label htmlFor="email" className="text-gray-700">
+                Email
+              </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -110,7 +123,9 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) =>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">
+                Password
+              </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -123,12 +138,12 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) =>
                   required
                 />
                 {showPassword ? (
-                  <EyeOff 
+                  <EyeOff
                     onClick={() => setShowPassword(false)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/60 hover:text-black transition-colors cursor-pointer"
                   />
                 ) : (
-                  <Eye 
+                  <Eye
                     onClick={() => setShowPassword(true)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/60 hover:text-black transition-colors cursor-pointer"
                   />
@@ -141,8 +156,8 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) =>
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`p-3 rounded-lg text-sm ${
-                  message.includes("successfully") 
-                    ? "bg-green-50 border border-green-200 text-green-700" 
+                  message.includes("successfully")
+                    ? "bg-green-50 border border-green-200 text-green-700"
                     : "bg-red-50 border border-red-200 text-red-700"
                 }`}
               >
@@ -157,9 +172,24 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) =>
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
                   </svg>
                   Processing...
                 </span>
@@ -204,8 +234,6 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onAuthSuccess, onClose }) =>
               </>
             )}
           </div>
-
-         
         </CardContent>
       </Card>
     </motion.div>

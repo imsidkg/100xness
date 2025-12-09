@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import ButtonHero from './Button';
 
 interface NavigationProps {
@@ -44,12 +44,7 @@ export function Navigation({ onGetStarted }: NavigationProps) {
             whileHover={{ scale: 1.05 }}
             className="flex items-center gap-2 cursor-pointer pl-3"
           >
-            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-gray-800 font-semibold uppercase tracking-tight">
-              EXNESS-100
-            </span>
+            <img src="/logo.svg" alt="100xness Logo" className="h-8" />
           </motion.div>
 
           {/* Desktop Navigation */}

@@ -1,16 +1,22 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  UserPlus, 
-  LogIn, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  UserPlus,
+  LogIn,
   Bitcoin,
-  Activity 
+  Activity,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -84,14 +90,18 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
               CryptoTrader Pro
             </CardTitle>
             <CardDescription className="text-slate-400">
-              {isLogin ? "Welcome back to your trading dashboard" : "Create your trading account"}
+              {isLogin
+                ? "Welcome back to your trading dashboard"
+                : "Create your trading account"}
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-300">Email</Label>
+                <Label htmlFor="email" className="text-slate-300">
+                  Email
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input
@@ -107,7 +117,9 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-300">Password</Label>
+                <Label htmlFor="password" className="text-slate-300">
+                  Password
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input
@@ -124,7 +136,11 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-slate-400 hover:text-slate-200"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -134,8 +150,8 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={`p-3 rounded-lg text-sm ${
-                    message.includes("successfully") 
-                      ? "bg-green-500/20 border border-green-500/50 text-green-200" 
+                    message.includes("successfully")
+                      ? "bg-green-500/20 border border-green-500/50 text-green-200"
                       : "bg-red-500/20 border border-red-500/50 text-red-200"
                   }`}
                 >
@@ -143,7 +159,10 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
                 </motion.div>
               )}
 
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <Button
                   type="submit"
                   disabled={isLoading}
@@ -152,7 +171,11 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
                   {isLoading ? (
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                     >
                       <Activity className="h-5 w-5" />
                     </motion.div>
@@ -192,37 +215,35 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
                 )}
               </button>
             </div>
-
-          
           </CardContent>
         </Card>
 
         {/* Floating Crypto Elements */}
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, -20, 0],
-            rotate: [0, 5, 0]
+            rotate: [0, 5, 0],
           }}
-          transition={{ 
+          transition={{
             duration: 4,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
           className="absolute top-10 left-10 opacity-20"
         >
           <Bitcoin className="h-8 w-8 text-purple-400" />
         </motion.div>
-        
+
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, 15, 0],
-            rotate: [0, -5, 0]
+            rotate: [0, -5, 0],
           }}
-          transition={{ 
+          transition={{
             duration: 3,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 1
+            delay: 1,
           }}
           className="absolute bottom-10 right-10 opacity-20"
         >
