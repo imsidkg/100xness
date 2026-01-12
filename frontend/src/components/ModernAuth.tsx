@@ -21,6 +21,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "sonner";
 
 interface AuthProps {
   onAuthSuccess: () => void;
@@ -57,13 +58,24 @@ const ModernAuth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
         setMessage(
           isLogin ? "Logged in successfully!" : "Account created successfully!"
         );
+        toast.success(isLogin ? "Welcome back!" : "Account created!", {
+          description: isLogin
+            ? "You have been logged in successfully"
+            : "Your trading account is ready",
+        });
         setTimeout(() => onAuthSuccess(), 1000); // Small delay for smooth transition
       } else {
         setMessage(data.message || "An error occurred");
+        toast.error(isLogin ? "Login failed" : "Signup failed", {
+          description: data.message || "An error occurred",
+        });
       }
     } catch (error) {
       console.error("Auth error:", error);
       setMessage("Network error or server is unreachable.");
+      toast.error("Connection error", {
+        description: "Network error or server is unreachable",
+      });
     } finally {
       setIsLoading(false);
     }

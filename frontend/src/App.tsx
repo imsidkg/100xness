@@ -2,6 +2,7 @@ import { useEffect, useReducer, useState } from "react";
 import { LandingPage } from "./components/LandingPage";
 import TradingDashboard from "./components/TradingDashboard";
 import { API_ENDPOINTS, WS_URL } from "./config/api";
+import { toast } from "sonner";
 
 type State = {
   candleData: any[];
@@ -92,12 +93,17 @@ function reducer(state: State, action: Action): State {
         const high = Number(Math.max(lastCandle.high, tradePrice));
         const low = Number(Math.min(lastCandle.low, tradePrice));
         const close = Number(tradePrice);
-        
+
         if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
-          console.warn("Invalid candle values after update:", { open, high, low, close });
+          console.warn("Invalid candle values after update:", {
+            open,
+            high,
+            low,
+            close,
+          });
           return state;
         }
-        
+
         const updatedCandle = {
           time: candleTime,
           open,
@@ -105,7 +111,7 @@ function reducer(state: State, action: Action): State {
           low,
           close,
         };
-        
+
         return {
           ...state,
           currentPrice: tradePrice,
@@ -120,7 +126,7 @@ function reducer(state: State, action: Action): State {
           low: Number(tradePrice),
           close: Number(tradePrice),
         };
-        
+
         return {
           ...state,
           currentPrice: tradePrice,
@@ -191,7 +197,7 @@ function App() {
     const token = localStorage.getItem("token");
     setTradeError(null); // Clear previous errors
     if (!token) {
-      alert("Please log in to place a trade.");
+      toast.error("Please log in to place a trade.");
       return;
     }
 
@@ -215,6 +221,9 @@ function App() {
 
       if (response.ok) {
         setTradeError(null); // Clear any previous errors on success
+        toast.success(`${type.toUpperCase()} order placed successfully!`, {
+          description: `${state.symbol} trade executed`,
+        });
         fetchAccountSummary(); // Refresh account summary after trade
       } else {
         let errorMessage = "An unknown error occurred.";
@@ -226,10 +235,12 @@ function App() {
           errorMessage = (await response.text()) || errorMessage;
         }
         setTradeError(errorMessage); // Set error message
+        toast.error("Trade failed", { description: errorMessage });
       }
     } catch (error) {
       console.error("Error placing trade:", error);
       setTradeError("Network error or server is unreachable."); // Set network error
+      toast.error("Network error", { description: "Server is unreachable" });
     }
   };
 
@@ -252,13 +263,14 @@ function App() {
               low: parseFloat(item.low),
               close: parseFloat(item.close),
             }))
-            .filter((item: any) => 
-              !isNaN(item.time) && 
-              !isNaN(item.open) && 
-              !isNaN(item.high) && 
-              !isNaN(item.low) && 
-              !isNaN(item.close) &&
-              item.time > 0
+            .filter(
+              (item: any) =>
+                !isNaN(item.time) &&
+                !isNaN(item.open) &&
+                !isNaN(item.high) &&
+                !isNaN(item.low) &&
+                !isNaN(item.close) &&
+                item.time > 0
             )
             .sort((a: any, b: any) => a.time - b.time);
 
@@ -281,7 +293,7 @@ function App() {
         // Handle wrapped format {channel: ..., data: ...}
         if (data.channel && data.data) {
           console.log("Detected wrapped format, channel:", data.channel);
-          
+
           // Only process bid_ask_updates channel
           if (data.channel === "bid_ask_updates") {
             data = data.data; // Extract the actual data
@@ -313,15 +325,15 @@ function App() {
         if (data.symbol && data.tradePrice && data.tradeTime) {
           const incomingSymbol = data.symbol.toLowerCase();
           const currentSymbol = state.symbol.toLowerCase();
-          
+
           if (incomingSymbol === currentSymbol) {
             console.log("Dispatching UPDATE_LAST_CANDLE with:", {
               symbol: incomingSymbol,
               tradePrice: data.tradePrice,
               tradeTime: data.tradeTime,
-              candleDataLength: state.candleData.length
+              candleDataLength: state.candleData.length,
             });
-            
+
             dispatch({
               type: "UPDATE_LAST_CANDLE",
               payload: {

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "sonner";
 
 interface AuthProps {
-    onAuthSuccess: (balance: number) => void;
+  onAuthSuccess: (balance: number) => void;
 }
 
 const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
@@ -33,13 +34,24 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
         setMessage(
           isLogin ? "Logged in successfully!" : "Signed up successfully!"
         );
-                        onAuthSuccess(data.balance); // Pass balance from backend to the callback
+        toast.success(isLogin ? "Welcome back!" : "Account created!", {
+          description: isLogin
+            ? "You have been logged in successfully"
+            : "Your account is ready",
+        });
+        onAuthSuccess(data.balance); // Pass balance from backend to the callback
       } else {
         setMessage(data.message || "An error occurred");
+        toast.error(isLogin ? "Login failed" : "Signup failed", {
+          description: data.message || "An error occurred",
+        });
       }
     } catch (error) {
       console.error("Auth error:", error);
       setMessage("Network error or server is unreachable.");
+      toast.error("Connection error", {
+        description: "Network error or server is unreachable",
+      });
     }
   };
 

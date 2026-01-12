@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { API_ENDPOINTS, WS_URL } from "../config/api";
+import { toast } from "sonner";
 
 interface Trade {
   order_id: string;
@@ -106,16 +107,18 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
       });
 
       if (response.ok) {
-        alert("Trade closed successfully");
+        toast.success("Trade closed successfully", {
+          description: `Order ${orderId.slice(0, 8)}... has been closed`,
+        });
         fetchOpenTrades();
         fetchClosedTrades();
       } else {
         const data = await response.json();
-        alert(`Failed to close trade: ${data.message}`);
+        toast.error("Failed to close trade", { description: data.message });
       }
     } catch (error) {
       console.error("Error closing trade:", error);
-      alert("Network error");
+      toast.error("Network error", { description: "Unable to close trade" });
     }
   };
 
