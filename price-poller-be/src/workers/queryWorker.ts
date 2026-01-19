@@ -23,16 +23,8 @@ export const processQueue = async () => {
         const bidPrice = tradePrice * (1 - SPREAD_PERCENTAGE);
         const askPrice = tradePrice * (1 + SPREAD_PERCENTAGE);
 
-        redis.publish(
-          BID_ASK_CHANNEL,
-          JSON.stringify({
-            symbol: trade.s,
-            bid: bidPrice,
-            ask: askPrice,
-            tradePrice: tradePrice,
-            tradeTime: trade.T,
-          })
-        );
+        // Pricing is already published real-time in binanceSocket.ts
+        // We only prepare ticker data for DB insertion here
 
         return {
           time: new Date(trade.T),
@@ -46,14 +38,12 @@ export const processQueue = async () => {
 
       if (tickers.length > 0) {
         console.log(
-          `Inserting batch of ${tickers.length} trades into tickers table.`
+          `Inserting batch of ${tickers.length} trades into tickers table.`,
         );
         await insertTickerBatch(tickers);
       }
     } else {
-      
       await new Promise((res) => setTimeout(res, 100));
     }
   }
 };
- 
