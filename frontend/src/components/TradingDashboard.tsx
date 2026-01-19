@@ -1,11 +1,6 @@
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
-import {
-  TrendingUp,
-  TrendingDown,
-  Bitcoin,
-  Coins,
-} from "lucide-react";
+import { TrendingUp, TrendingDown, Bitcoin, Coins } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -43,7 +38,7 @@ interface TradingDashboardProps {
   currentPrice: number | null;
   accountSummary: any;
   candleData: any[];
-  onTrade: (type: "buy" | "sell", data: any) => void;
+  onTrade: (type: "buy" | "sell", data: any) => Promise<void>;
   tradeError: string | null;
   onSymbolChange: (symbol: string) => void;
   onIntervalChange: (interval: string) => void;
@@ -90,8 +85,8 @@ const TradingDashboard = ({
     }
   }, [currentPrice]);
 
-  const handleTrade = (type: "buy" | "sell") => {
-    onTrade(type, {
+  const handleTrade = async (type: "buy" | "sell") => {
+    await onTrade(type, {
       symbol,
       quantity,
       leverage,
@@ -99,14 +94,13 @@ const TradingDashboard = ({
       takeProfit,
       margin,
     });
-    setTradesRefreshTrigger(prev => prev + 1);
+    setTradesRefreshTrigger((prev) => prev + 1);
   };
-// @ts-ignore
+  // @ts-ignore
   const getSymbolIcon = (symbolValue: string) => {
     const symbolData = symbolOptions.find((s) => s.value === symbolValue);
     return symbolData ? symbolData.icon : Coins;
   };
-
 
   return (
     <div className="min-h-screen bg-white text-slate-900 p-6 w-full">
@@ -117,7 +111,11 @@ const TradingDashboard = ({
         className="flex items-center justify-between mb-8"
       >
         <div className="flex items-center space-x-3">
-          <img src="/logo.svg" alt="100xness Logo" className="h-10 w-auto mr-0.5" />
+          <img
+            src="/logo.svg"
+            alt="100xness Logo"
+            className="h-10 w-auto mr-0.5"
+          />
         </div>
 
         <div className="flex items-center space-x-4">
@@ -272,10 +270,18 @@ const TradingDashboard = ({
                     <SelectValue placeholder="Interval" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="1m" className="text-black">1m</SelectItem>
-                    <SelectItem value="5m" className="text-black">5m</SelectItem>
-                    <SelectItem value="10m" className="text-black">10m</SelectItem>
-                    <SelectItem value="1h" className="text-black">1h</SelectItem>
+                    <SelectItem value="1m" className="text-black">
+                      1m
+                    </SelectItem>
+                    <SelectItem value="5m" className="text-black">
+                      5m
+                    </SelectItem>
+                    <SelectItem value="10m" className="text-black">
+                      10m
+                    </SelectItem>
+                    <SelectItem value="1h" className="text-black">
+                      1h
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </CardHeader>
@@ -352,7 +358,7 @@ const TradingDashboard = ({
                     value={margin || ""}
                     onChange={(e) =>
                       setMargin(
-                        e.target.value ? parseFloat(e.target.value) : undefined
+                        e.target.value ? parseFloat(e.target.value) : undefined,
                       )
                     }
                     className="bg-white border-slate-300"
@@ -367,7 +373,7 @@ const TradingDashboard = ({
                     value={stopLoss || ""}
                     onChange={(e) =>
                       setStopLoss(
-                        e.target.value ? parseFloat(e.target.value) : undefined
+                        e.target.value ? parseFloat(e.target.value) : undefined,
                       )
                     }
                     className="bg-white border-slate-300"
@@ -382,7 +388,7 @@ const TradingDashboard = ({
                     value={takeProfit || ""}
                     onChange={(e) =>
                       setTakeProfit(
-                        e.target.value ? parseFloat(e.target.value) : undefined
+                        e.target.value ? parseFloat(e.target.value) : undefined,
                       )
                     }
                     className="bg-white border-slate-300"

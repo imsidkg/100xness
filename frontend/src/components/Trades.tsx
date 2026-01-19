@@ -124,13 +124,20 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
 
   useEffect(() => {
     if (token) {
+      fetchOpenTrades();
+      fetchClosedTrades();
+    }
+  }, [token, refreshTrigger]);
+
+  useEffect(() => {
+    if (token) {
       if (activeTab === "open") {
         fetchOpenTrades();
       } else {
         fetchClosedTrades();
       }
     }
-  }, [token, activeTab, refreshTrigger]);
+  }, [token, activeTab]);
 
   // Real-time PnL updates via WebSocket - Calculate PnL directly on frontend
   useEffect(() => {
@@ -160,11 +167,11 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
               setOpenTrades((prevTrades) => {
                 return prevTrades.map((trade) => {
                   const updatedTrade = pnlData.unrealizedPnL.find(
-                    (t: any) => t.order_id === trade.order_id
+                    (t: any) => t.order_id === trade.order_id,
                   );
                   if (updatedTrade) {
                     console.log(
-                      `Updating trade ${trade.order_id} PnL to: ${updatedTrade.unrealized_pnl}`
+                      `Updating trade ${trade.order_id} PnL to: ${updatedTrade.unrealized_pnl}`,
                     );
                     return {
                       ...trade,
@@ -185,7 +192,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
           ) {
             const priceData = data.data;
             console.log(
-              `Updating PnL for ${priceData.symbol} at price ${priceData.tradePrice}`
+              `Updating PnL for ${priceData.symbol} at price ${priceData.tradePrice}`,
             );
             setOpenTrades((prevTrades) => {
               return prevTrades.map((trade) => {
@@ -203,7 +210,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                   }
 
                   console.log(
-                    `Trade ${trade.order_id} PnL calculated to: ${unrealized_pnl}`
+                    `Trade ${trade.order_id} PnL calculated to: ${unrealized_pnl}`,
                   );
                   return {
                     ...trade,
@@ -219,7 +226,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
         console.error(
           "Error processing WebSocket message for PnL:",
           error,
-          event.data
+          event.data,
         );
       }
     };
@@ -336,7 +343,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                   </td>
                   <td
                     className={`px-4 py-2 font-medium ${getPnLColor(
-                      trade.unrealized_pnl || 0
+                      trade.unrealized_pnl || 0,
                     )}`}
                   >
                     {formatCurrency(trade.unrealized_pnl || 0)}
@@ -402,7 +409,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                   <td className="px-4 py-2">{trade.leverage}x</td>
                   <td
                     className={`px-4 py-2 font-medium ${getPnLColor(
-                      trade.realized_pnl || 0
+                      trade.realized_pnl || 0,
                     )}`}
                   >
                     {formatCurrency(trade.realized_pnl || 0)}

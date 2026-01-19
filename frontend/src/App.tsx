@@ -141,7 +141,7 @@ function reducer(state: State, action: Action): State {
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
-    !!localStorage.getItem("token")
+    !!localStorage.getItem("token"),
   );
   const [userEmail, setUserEmail] = useState<string>("");
   type AccountSummary = {
@@ -152,7 +152,7 @@ function App() {
     totalUnrealizedPnl: number;
   };
   const [accountSummary, setAccountSummary] = useState<AccountSummary | null>(
-    null
+    null,
   );
   const [quantity] = useState<number>(0.001);
   const [margin] = useState<number | undefined>(undefined);
@@ -193,7 +193,7 @@ function App() {
     }
   };
 
-  const handleTrade = async (type: "buy" | "sell") => {
+  const handleTrade = async (type: "buy" | "sell", data: any) => {
     const token = localStorage.getItem("token");
     setTradeError(null); // Clear previous errors
     if (!token) {
@@ -210,12 +210,12 @@ function App() {
         },
         body: JSON.stringify({
           type,
-          symbol: state.symbol,
-          quantity,
-          margin,
-          leverage,
-          stopLoss,
-          takeProfit,
+          symbol: data.symbol || state.symbol,
+          quantity: data.quantity || quantity,
+          margin: data.margin || margin,
+          leverage: data.leverage || leverage,
+          stopLoss: data.stopLoss || stopLoss,
+          takeProfit: data.takeProfit || takeProfit,
         }),
       });
 
@@ -270,7 +270,7 @@ function App() {
                 !isNaN(item.high) &&
                 !isNaN(item.low) &&
                 !isNaN(item.close) &&
-                item.time > 0
+                item.time > 0,
             )
             .sort((a: any, b: any) => a.time - b.time);
 
