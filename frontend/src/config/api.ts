@@ -11,6 +11,8 @@ export const API_ENDPOINTS = {
   TRADE_OPEN: `${API_BASE_URL}/api/v1/trade/open`,
   TRADE_CLOSED: `${API_BASE_URL}/api/v1/trade/closed`,
   TRADE_CLOSE: `${API_BASE_URL}/api/v1/trade/close`,
+  TRADE_PENDING: `${API_BASE_URL}/api/v1/trade/pending`,
+  TRADE_CANCEL: `${API_BASE_URL}/api/v1/trade/cancel`,
 
   CANDLES: (symbol: string) => `${API_BASE_URL}/candles/${symbol}`,
 };

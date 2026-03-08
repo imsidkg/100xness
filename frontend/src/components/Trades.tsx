@@ -5,17 +5,21 @@ import { toast } from "sonner";
 interface Trade {
   order_id: string;
   type: "buy" | "sell";
+  order_type: "market" | "limit" | "stop";
+  limit_price?: number;
   margin: number;
   leverage: number;
   symbol: string;
   quantity: number;
   entry_price: number;
-  status: "open" | "closed" | "liquidated";
+  status: "open" | "closed" | "liquidated" | "pending";
   exit_price?: number;
   realized_pnl?: number;
   unrealized_pnl?: number;
   stop_loss?: number;
   take_profit?: number;
+  commission?: number;
+  swap?: number;
   created_at: string;
   closed_at?: string;
 }
@@ -26,9 +30,12 @@ interface TradesProps {
 }
 
 const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
-  const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
+  const [activeTab, setActiveTab] = useState<"open" | "closed" | "pending">(
+    "open",
+  );
   const [openTrades, setOpenTrades] = useState<Trade[]>([]);
   const [closedTrades, setClosedTrades] = useState<Trade[]>([]);
+  const [pendingTrades, setPendingTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,6 +100,60 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
     }
   };
 
+  const fetchPendingTrades = async () => {
+    if (!token) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(API_ENDPOINTS.TRADE_PENDING, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPendingTrades(data.trades || data || []);
+      } else {
+        setError("Failed to fetch pending trades");
+      }
+    } catch (error) {
+      console.error("Error fetching pending trades:", error);
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelPendingOrder = async (orderId: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(API_ENDPOINTS.TRADE_CANCEL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId }),
+      });
+
+      if (response.ok) {
+        toast.success("Order cancelled", {
+          description: `Pending order ${orderId.slice(0, 8)}... cancelled`,
+        });
+        fetchPendingTrades();
+      } else {
+        const data = await response.json();
+        toast.error("Failed to cancel order", { description: data.message });
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      toast.error("Network error", { description: "Unable to cancel order" });
+    }
+  };
+
   const closeTrade = async (orderId: string) => {
     if (!token) return;
 
@@ -126,6 +187,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
     if (token) {
       fetchOpenTrades();
       fetchClosedTrades();
+      fetchPendingTrades();
     }
   }, [token, refreshTrigger]);
 
@@ -133,8 +195,10 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
     if (token) {
       if (activeTab === "open") {
         fetchOpenTrades();
-      } else {
+      } else if (activeTab === "closed") {
         fetchClosedTrades();
+      } else if (activeTab === "pending") {
+        fetchPendingTrades();
       }
     }
   }, [token, activeTab]);
@@ -181,6 +245,22 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                   return trade;
                 });
               });
+            }
+          }
+
+          // Handle trade updates (e.g., pending order filled)
+          if (data.channel === "trade_updates") {
+            if (
+              data.data.event === "pending_order_filled" &&
+              data.data.orderId
+            ) {
+              console.log(
+                `Pending order ${data.data.orderId} filled at ${data.data.fillPrice}. Refreshing open trades.`,
+              );
+              setPendingTrades((prev) =>
+                prev.filter((t) => t.order_id !== data.data.orderId),
+              );
+              fetchOpenTrades();
             }
           }
 
@@ -269,26 +349,36 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-4">Your Trades</h2>
 
-      <div className="flex mb-4">
+      <div className="flex mb-4 gap-1 w-max bg-slate-100 p-1 rounded-lg">
         <button
-          className={`px-4 py-2 font-medium rounded-t-lg ${
+          className={`px-4 py-2 font-medium rounded-md transition-colors ${
             activeTab === "open"
-              ? "border-b-2 border-white-500 text-white"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200"
           }`}
           onClick={() => setActiveTab("open")}
         >
-          Open Trades ({openTrades.length})
+          Open Trades ({openTrades?.length || 0})
         </button>
         <button
-          className={`px-4 py-2 font-medium rounded-t-lg ml-2 ${
+          className={`px-4 py-2 font-medium rounded-md transition-colors ${
+            activeTab === "pending"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+          }`}
+          onClick={() => setActiveTab("pending")}
+        >
+          Pending Orders ({pendingTrades?.length || 0})
+        </button>
+        <button
+          className={`px-4 py-2 font-medium rounded-md transition-colors ${
             activeTab === "closed"
-              ? "bg-blue-500 text-white"
-              : "bg-white text-gray-500  hover:bg-gray-100"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200"
           }`}
           onClick={() => setActiveTab("closed")}
         >
-          Closed Trades ({closedTrades.length})
+          Closed Trades ({closedTrades?.length || 0})
         </button>
       </div>
 
@@ -303,11 +393,13 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-2 text-left">Symbol</th>
-                <th className="px-4 py-2 text-left">Type</th>
+                <th className="px-4 py-2 text-left">Order Type</th>
+                <th className="px-4 py-2 text-left">Position</th>
                 <th className="px-4 py-2 text-left">Entry Price</th>
                 <th className="px-4 py-2 text-left">Quantity</th>
                 <th className="px-4 py-2 text-left">Margin</th>
                 <th className="px-4 py-2 text-left">Leverage</th>
+                <th className="px-4 py-2 text-left">Swap</th>
                 <th className="px-4 py-2 text-left">Stop Loss</th>
                 <th className="px-4 py-2 text-left">Take Profit</th>
                 <th className="px-4 py-2 text-left">Unrealized PnL</th>
@@ -333,6 +425,9 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                   </td>
                   <td className="px-4 py-2">{formatCurrency(trade.margin)}</td>
                   <td className="px-4 py-2">{trade.leverage}x</td>
+                  <td className="px-4 py-2 text-red-500">
+                    {trade.swap ? `-${formatCurrency(trade.swap)}` : "$0.00"}
+                  </td>
                   <td className="px-4 py-2">
                     {trade.stop_loss ? formatNumber(trade.stop_loss, 4) : "-"}
                   </td>
@@ -373,22 +468,43 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
           <table className="min-w-full table-auto">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 py-2 text-left">Order ID</th>
+                <th className="px-4 py-2 text-left">Open Time</th>
                 <th className="px-4 py-2 text-left">Symbol</th>
+                <th className="px-4 py-2 text-left">Order Type</th>
                 <th className="px-4 py-2 text-left">Type</th>
+                <th className="px-4 py-2 text-left">Lot</th>
+                <th className="px-4 py-2 text-left">Leverage</th>
+                <th className="px-4 py-2 text-left">SL</th>
+                <th className="px-4 py-2 text-left">TP</th>
                 <th className="px-4 py-2 text-left">Entry Price</th>
                 <th className="px-4 py-2 text-left">Exit Price</th>
-                <th className="px-4 py-2 text-left">Quantity</th>
-                <th className="px-4 py-2 text-left">Margin</th>
-                <th className="px-4 py-2 text-left">Leverage</th>
-                <th className="px-4 py-2 text-left">Realized PnL</th>
+                <th className="px-4 py-2 text-left">Commission</th>
+                <th className="px-4 py-2 text-left">Swap</th>
+                <th className="px-4 py-2 text-left">PnL</th>
                 <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-left">Closed At</th>
+                <th className="px-4 py-2 text-left">Close Time</th>
               </tr>
             </thead>
             <tbody>
               {closedTrades.map((trade) => (
-                <tr key={trade.order_id} className="border-b hover:bg-gray-50">
+                <tr
+                  key={trade.order_id}
+                  className="border-b hover:bg-gray-50 whitespace-nowrap"
+                >
+                  <td
+                    className="px-4 py-2 text-sm text-gray-500 cursor-help"
+                    title={trade.order_id}
+                  >
+                    {trade.order_id.substring(0, 8)}...
+                  </td>
+                  <td className="px-4 py-2 text-sm">
+                    {new Date(trade.created_at).toLocaleString()}
+                  </td>
                   <td className="px-4 py-2 font-medium">{trade.symbol}</td>
+                  <td className="px-4 py-2 capitalize">
+                    {trade.order_type || "market"}
+                  </td>
                   <td
                     className={`px-4 py-2 font-medium ${
                       trade.type === "buy" ? "text-green-600" : "text-red-600"
@@ -397,16 +513,31 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                     {trade.type.toUpperCase()}
                   </td>
                   <td className="px-4 py-2">
+                    {formatNumber(trade.quantity, 6)}
+                  </td>
+                  <td className="px-4 py-2">{trade.leverage}x</td>
+                  <td className="px-4 py-2">
+                    {trade.stop_loss ? formatNumber(trade.stop_loss, 4) : "-"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {trade.take_profit
+                      ? formatNumber(trade.take_profit, 4)
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-2">
                     {formatNumber(trade.entry_price, 4)}
                   </td>
                   <td className="px-4 py-2">
                     {trade.exit_price ? formatNumber(trade.exit_price, 4) : "-"}
                   </td>
-                  <td className="px-4 py-2">
-                    {formatNumber(trade.quantity, 6)}
+                  <td className="px-4 py-2 text-gray-500">
+                    {trade.commission
+                      ? `-${formatCurrency(trade.commission)}`
+                      : "$0.00"}
                   </td>
-                  <td className="px-4 py-2">{formatCurrency(trade.margin)}</td>
-                  <td className="px-4 py-2">{trade.leverage}x</td>
+                  <td className="px-4 py-2 text-gray-500">
+                    {trade.swap ? `-${formatCurrency(trade.swap)}` : "$0.00"}
+                  </td>
                   <td
                     className={`px-4 py-2 font-medium ${getPnLColor(
                       trade.realized_pnl || 0,
@@ -418,7 +549,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                     <span
                       className={`px-2 py-1 rounded text-xs ${
                         trade.status === "closed"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-gray-200 text-gray-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
@@ -437,6 +568,77 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
           {closedTrades.length === 0 && !loading && (
             <div className="text-center py-8 text-gray-500">
               No closed trades found
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "pending" && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-auto">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left">Symbol</th>
+                <th className="px-4 py-2 text-left">Type</th>
+                <th className="px-4 py-2 text-left">Order Type</th>
+                <th className="px-4 py-2 text-left">Limit Price</th>
+                <th className="px-4 py-2 text-left">Quantity</th>
+                <th className="px-4 py-2 text-left">Margin</th>
+                <th className="px-4 py-2 text-left">Leverage</th>
+                <th className="px-4 py-2 text-left">Stop Loss</th>
+                <th className="px-4 py-2 text-left">Take Profit</th>
+                <th className="px-4 py-2 text-left">Created At</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pendingTrades.map((trade) => (
+                <tr key={trade.order_id} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-2 font-medium">{trade.symbol}</td>
+                  <td
+                    className={`px-4 py-2 font-medium ${
+                      trade.type === "buy" ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {trade.type.toUpperCase()}
+                  </td>
+                  <td className="px-4 py-2 capitalize">{trade.order_type}</td>
+                  <td className="px-4 py-2">
+                    {trade.limit_price
+                      ? formatNumber(trade.limit_price, 4)
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {formatNumber(trade.quantity, 6)}
+                  </td>
+                  <td className="px-4 py-2">{formatCurrency(trade.margin)}</td>
+                  <td className="px-4 py-2">{trade.leverage}x</td>
+                  <td className="px-4 py-2">
+                    {trade.stop_loss ? formatNumber(trade.stop_loss, 4) : "-"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {trade.take_profit
+                      ? formatNumber(trade.take_profit, 4)
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-2 text-sm">
+                    {new Date(trade.created_at).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => cancelPendingOrder(trade.order_id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {pendingTrades.length === 0 && !loading && (
+            <div className="text-center py-8 text-gray-500">
+              No pending orders found
             </div>
           )}
         </div>

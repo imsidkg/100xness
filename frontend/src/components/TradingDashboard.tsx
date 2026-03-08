@@ -64,6 +64,10 @@ const TradingDashboard = ({
 }: TradingDashboardProps) => {
   const [quantity, setQuantity] = useState(0.001);
   const [leverage, setLeverage] = useState(1);
+  const [orderType, setOrderType] = useState<"market" | "limit" | "stop">(
+    "market",
+  );
+  const [limitPrice, setLimitPrice] = useState<number | undefined>(undefined);
   const [stopLoss, setStopLoss] = useState<number | undefined>(undefined);
   const [takeProfit, setTakeProfit] = useState<number | undefined>(undefined);
   const [margin, setMargin] = useState<number | undefined>(undefined);
@@ -90,6 +94,8 @@ const TradingDashboard = ({
       symbol,
       quantity,
       leverage,
+      orderType,
+      limitPrice: orderType !== "market" ? limitPrice : undefined,
       stopLoss,
       takeProfit,
       margin,
@@ -327,17 +333,57 @@ const TradingDashboard = ({
                   </motion.div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(parseFloat(e.target.value))}
-                    className="bg-white border-slate-300"
-                    step="0.001"
-                    min="0.001"
-                  />
+                <div className="space-y-4 pt-2">
+                  <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+                    {(["market", "limit", "stop"] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setOrderType(type)}
+                        className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                          orderType === type
+                            ? "bg-slate-900 text-white shadow-sm"
+                            : "bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+
+                  {orderType !== "market" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="limitPrice">
+                        {orderType === "limit" ? "Limit Price" : "Stop Price"}
+                      </Label>
+                      <Input
+                        id="limitPrice"
+                        type="number"
+                        value={limitPrice || ""}
+                        onChange={(e) =>
+                          setLimitPrice(
+                            e.target.value
+                              ? parseFloat(e.target.value)
+                              : undefined,
+                          )
+                        }
+                        className="bg-white border-slate-300"
+                        step="0.01"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="quantity">Quantity</Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseFloat(e.target.value))}
+                      className="bg-white border-slate-300"
+                      step="0.001"
+                      min="0.001"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="leverage">Leverage</Label>
