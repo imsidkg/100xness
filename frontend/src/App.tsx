@@ -216,6 +216,8 @@ function App() {
           leverage: data.leverage || leverage,
           stopLoss: data.stopLoss || stopLoss,
           takeProfit: data.takeProfit || takeProfit,
+          orderType: data.orderType || "market",
+          limitPrice: data.limitPrice,
         }),
       });
 

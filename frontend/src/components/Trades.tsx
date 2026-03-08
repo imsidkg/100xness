@@ -114,7 +114,15 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setPendingTrades(data.trades || data || []);
+        const trades = (data.trades || data || []).map((trade: any) => ({
+          ...trade,
+          order_id: trade.orderId,
+          margin: trade.margin / 100,
+          limit_price: trade.limitPrice ? trade.limitPrice / 10000 : undefined,
+          stop_loss: trade.stopLoss ? trade.stopLoss / 10000 : undefined,
+          take_profit: trade.takeProfit ? trade.takeProfit / 10000 : undefined,
+        }));
+        setPendingTrades(trades);
       } else {
         setError("Failed to fetch pending trades");
       }
