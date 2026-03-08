@@ -274,6 +274,7 @@ export const getPendingOrdersForUser = async (
       takeProfit: trade.take_profit
         ? Math.round(trade.take_profit * 10000)
         : undefined,
+      created_at: trade.created_at,
     }));
 
     res.status(200).json({ trades: formattedTrades });
