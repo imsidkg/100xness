@@ -8,12 +8,27 @@ import { startPnLWorker } from "./workers/pnlWorker"; // Import the PnL worker
 
 export const symbols = ["btcusdt", "ethusdt", "solusdt"];
 
+const startApp = async () => {
+  try {
+    console.log("Initializing application...");
+    await initDB();
+    console.log("Database initialized");
 
-   initDB();
-  fetchBinanceData(symbols);
-  startWebSocketServer();
+    fetchBinanceData(symbols);
+    startWebSocketServer();
 
-  // Start background workers
-  processQueue().catch(err => console.error("Query Worker error:", err));
-  startTradeWorker().catch(err => console.error("Trade Worker error:", err)); // Start the new trade worker
-  startPnLWorker(); // Start the PnL worker
+    // Start background workers
+    processQueue().catch((err) => console.error("Query Worker error:", err));
+    startTradeWorker().catch((err) =>
+      console.error("Trade Worker error:", err),
+    );
+    startPnLWorker();
+
+    console.log("All services started successfully");
+  } catch (error) {
+    console.error("Failed to start application:", error);
+    process.exit(1);
+  }
+};
+
+startApp();
