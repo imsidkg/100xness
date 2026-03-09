@@ -26,8 +26,8 @@ interface ChartProps {
 
 export const ChartComponent: React.FC<ChartProps> = ({ data, colors = {} }) => {
   const {
-    backgroundColor = "white",
-    textColor = "black",
+    backgroundColor = "#131722",
+    textColor = "#d1d4dc",
     upColor = "#26a69a",
     downColor = "#ef5350",
     borderUpColor = "#26a69a",
@@ -37,36 +37,29 @@ export const ChartComponent: React.FC<ChartProps> = ({ data, colors = {} }) => {
   } = colors;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<{ chart: IChartApi; series: ISeriesApi<"Candlestick"> } | null>(
-    null
-  );
+  const chartRef = useRef<{
+    chart: IChartApi;
+    series: ISeriesApi<"Candlestick">;
+  } | null>(null);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    const isDarkTheme = backgroundColor === "#131722" || backgroundColor === "#1e222d";
-    const gridColor = isDarkTheme ? 'rgba(42, 46, 57, 0.5)' : 'rgba(197, 203, 206, 0.3)';
-    const crosshairColor = isDarkTheme ? 'rgba(120, 123, 134, 0.8)' : 'rgba(32, 38, 46, 0.6)';
-    const borderColor = isDarkTheme ? 'rgba(42, 46, 57, 0.9)' : 'rgba(197, 203, 206, 0.5)';
+    const container = chartContainerRef.current;
+    const gridColor = "rgba(42, 46, 57, 0.5)";
+    const crosshairColor = "rgba(120, 123, 134, 0.8)";
+    const borderColor = "rgba(42, 46, 57, 0.9)";
 
-    const chart = createChart(chartContainerRef.current, {
+    const chart = createChart(container, {
       layout: {
         background: { type: ColorType.Solid, color: backgroundColor },
         textColor,
       },
-      width: chartContainerRef.current.clientWidth,
-      height: 500,
+      width: container.clientWidth,
+      height: container.clientHeight || 460,
       grid: {
-        vertLines: {
-          color: gridColor,
-          style: 0,
-          visible: true,
-        },
-        horzLines: {
-          color: gridColor,
-          style: 0,
-          visible: true,
-        },
+        vertLines: { color: gridColor, style: 0, visible: true },
+        horzLines: { color: gridColor, style: 0, visible: true },
       },
       crosshair: {
         mode: 1,
@@ -74,25 +67,22 @@ export const ChartComponent: React.FC<ChartProps> = ({ data, colors = {} }) => {
           width: 1,
           color: crosshairColor,
           style: 3,
-          labelBackgroundColor: upColor,
+          labelBackgroundColor: "#2a2e39",
         },
         horzLine: {
           width: 1,
           color: crosshairColor,
           style: 3,
-          labelBackgroundColor: upColor,
+          labelBackgroundColor: "#2a2e39",
         },
       },
       rightPriceScale: {
-        borderColor: borderColor,
+        borderColor,
         visible: true,
-        scaleMargins: {
-          top: 0.1,
-          bottom: 0.1,
-        },
+        scaleMargins: { top: 0.05, bottom: 0.05 },
       },
       timeScale: {
-        borderColor: borderColor,
+        borderColor,
         timeVisible: true,
         secondsVisible: false,
         rightOffset: 5,
@@ -124,19 +114,22 @@ export const ChartComponent: React.FC<ChartProps> = ({ data, colors = {} }) => {
     });
 
     chart.timeScale().fitContent();
-
     chartRef.current = { chart, series: candleSeries };
 
     const handleResize = () => {
-      chart.applyOptions({
-        width: chartContainerRef.current?.clientWidth ?? 0,
-      });
+      if (chartContainerRef.current) {
+        chart.applyOptions({
+          width: chartContainerRef.current.clientWidth,
+          height: chartContainerRef.current.clientHeight || 460,
+        });
+      }
     };
 
-    window.addEventListener("resize", handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
       chart.remove();
       chartRef.current = null;
     };
@@ -158,6 +151,9 @@ export const ChartComponent: React.FC<ChartProps> = ({ data, colors = {} }) => {
   }, [data]);
 
   return (
-    <div ref={chartContainerRef} style={{ width: "100%", height: "500px" }} />
+    <div
+      ref={chartContainerRef}
+      style={{ width: "100%", height: "100%" }}
+    />
   );
 };
