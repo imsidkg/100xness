@@ -185,17 +185,17 @@ const TradingDashboard = ({
           </motion.div>
 
           <Select value={symbol} onValueChange={onSymbolChange}>
-            <SelectTrigger className="w-[180px] bg-gray-700 text-white border-gray-600 hover:bg-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+            <SelectTrigger className="w-[180px] bg-slate-900 !text-white border-slate-700 hover:bg-slate-800 transition-colors [&_svg]:!text-white">
               <SelectValue placeholder="Select symbol" />
             </SelectTrigger>
-            <SelectContent className="bg-white">
+            <SelectContent className="bg-white border-slate-200">
               {symbolOptions.map((option) => {
                 const Icon = option.icon;
                 return (
                   <SelectItem
                     key={option.value}
                     value={option.value}
-                    className="text-black"
+                    className="!text-black hover:bg-slate-100 focus:bg-slate-100 focus:!text-black cursor-pointer"
                   >
                     <div className="flex items-center space-x-2">
                       <Icon className="h-4 w-4" />
