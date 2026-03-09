@@ -407,6 +407,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                 <th className="px-4 py-2 text-left">Quantity</th>
                 <th className="px-4 py-2 text-left">Margin</th>
                 <th className="px-4 py-2 text-left">Leverage</th>
+                <th className="px-4 py-2 text-left">Commission</th>
                 <th className="px-4 py-2 text-left">Swap</th>
                 <th className="px-4 py-2 text-left">Stop Loss</th>
                 <th className="px-4 py-2 text-left">Take Profit</th>
@@ -418,8 +419,11 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
               {openTrades.map((trade) => (
                 <tr key={trade.order_id} className="border-b hover:bg-gray-50">
                   <td className="px-4 py-2 font-medium">{trade.symbol}</td>
+                  <td className="px-4 py-2 uppercase text-slate-500 text-sm">
+                    {trade.order_type || "MARKET"}
+                  </td>
                   <td
-                    className={`px-4 py-2 font-medium ${
+                    className={`px-4 py-2 font-bold ${
                       trade.type === "buy" ? "text-green-600" : "text-red-600"
                     }`}
                   >
@@ -434,7 +438,12 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                   <td className="px-4 py-2">{formatCurrency(trade.margin)}</td>
                   <td className="px-4 py-2">{trade.leverage}x</td>
                   <td className="px-4 py-2 text-red-500">
-                    {trade.swap ? `-${formatCurrency(trade.swap)}` : "$0.00"}
+                    {trade.commission
+                      ? `-${formatCurrency(trade.commission)}`
+                      : "$0.00"}
+                  </td>
+                  <td className="px-4 py-2 text-red-500">
+                    {trade.swap ? `-${formatCurrency(trade.swap)}` : "-"}
                   </td>
                   <td className="px-4 py-2">
                     {trade.stop_loss ? formatNumber(trade.stop_loss, 4) : "-"}
@@ -454,7 +463,7 @@ const Trades: React.FC<TradesProps> = ({ token, refreshTrigger }) => {
                   <td className="px-4 py-2">
                     <button
                       onClick={() => closeTrade(trade.order_id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                      className="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1 rounded text-sm transition-colors shadow-sm"
                     >
                       Close
                     </button>

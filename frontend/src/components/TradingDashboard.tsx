@@ -237,7 +237,11 @@ const TradingDashboard = ({
                   </TableHeader>
                   <TableBody>
                     {Object.entries(prices).map(([symbol, price]) => (
-                      <TableRow key={symbol}>
+                      <TableRow
+                        key={symbol}
+                        onClick={() => onSymbolChange(symbol)}
+                        className="cursor-pointer hover:bg-slate-50 transition-colors"
+                      >
                         <TableCell className="font-medium text-slate-900">
                           {symbol.toUpperCase()}
                         </TableCell>

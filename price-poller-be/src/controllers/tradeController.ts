@@ -198,25 +198,7 @@ export const getOpenTradesForUser = async (
   try {
     const openTrades = await getUserOpenTrades(userId);
 
-    // Format the response according to the specified structure
-    const formattedTrades = openTrades.map((trade) => ({
-      orderId: trade.order_id,
-      type: trade.type,
-      orderType: trade.order_type,
-      margin: Math.round(trade.margin * 100), // Convert to cents (2 decimal places)
-      leverage: trade.leverage,
-      openPrice: Math.round(trade.entry_price * 10000), // Convert to basis points (4 decimal places)
-      symbol: trade.symbol,
-      quantity: trade.quantity,
-      stopLoss: trade.stop_loss
-        ? Math.round(trade.stop_loss * 10000)
-        : undefined,
-      takeProfit: trade.take_profit
-        ? Math.round(trade.take_profit * 10000)
-        : undefined,
-    }));
-
-    res.status(200).json({ trades: formattedTrades });
+    res.status(200).json({ trades: openTrades });
   } catch (error: any) {
     console.error("Error fetching open trades:", error);
     res.status(500).json({ message: error.message || "Internal server error" });
@@ -257,27 +239,7 @@ export const getPendingOrdersForUser = async (
     const { getPendingOrders } = await import("../services/tradeService.js");
     const pendingOrders = await getPendingOrders(userId);
 
-    const formattedTrades = pendingOrders.map((trade: any) => ({
-      orderId: trade.order_id,
-      type: trade.type,
-      orderType: trade.order_type,
-      margin: Math.round(trade.margin * 100), // Convert to cents
-      leverage: trade.leverage,
-      limitPrice: trade.limit_price
-        ? Math.round(trade.limit_price * 10000)
-        : undefined,
-      symbol: trade.symbol,
-      quantity: trade.quantity,
-      stopLoss: trade.stop_loss
-        ? Math.round(trade.stop_loss * 10000)
-        : undefined,
-      takeProfit: trade.take_profit
-        ? Math.round(trade.take_profit * 10000)
-        : undefined,
-      created_at: trade.created_at,
-    }));
-
-    res.status(200).json({ trades: formattedTrades });
+    res.status(200).json({ trades: pendingOrders });
   } catch (error: any) {
     console.error("Error fetching pending orders:", error);
     res.status(500).json({ message: error.message || "Internal server error" });
