@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { API_ENDPOINTS, WS_URL } from "../../config/api";
 import { toast } from "sonner";
 import { Briefcase, Eye, Layers, MoreVertical, X } from "lucide-react";
+import type { TradeToEdit } from "../TradingDashboard";
 
 interface Trade {
   order_id: string;
@@ -25,12 +26,16 @@ interface PositionsPanelProps {
   token: string | null;
   refreshTrigger?: number;
   accountSummary: any;
+  selectedTradeId?: string | null;
+  onTradeSelect?: (trade: TradeToEdit) => void;
 }
 
 const PositionsPanel: React.FC<PositionsPanelProps> = ({
   token,
   refreshTrigger,
   accountSummary,
+  selectedTradeId,
+  onTradeSelect,
 }) => {
   const [activeTab, setActiveTab] = useState<"open" | "pending" | "closed">(
     "open"
@@ -190,46 +195,60 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
   const hasPositions = activeTab === "open" ? openTrades.length > 0 : closedTrades.length > 0;
 
   return (
-    <div className="positions-panel">
+    <div className="flex flex-col h-full bg-[#141D23]">
       {/* Tabs Row */}
-      <div className="positions-tabs-row">
-        <div className="positions-tabs">
+      <div className="flex items-center justify-between px-3 border-b border-[#3F474C]">
+        <div className="flex">
           <button
-            className={`positions-tab ${activeTab === "open" ? "positions-tab-active" : ""}`}
+            className={`px-4 py-2.5 text-[13px] font-medium transition-colors border-b-2 ${
+              activeTab === "open"
+                ? "text-white border-white"
+                : "text-[#787b86] border-transparent hover:text-[#d1d4dc]"
+            }`}
             onClick={() => setActiveTab("open")}
           >
             Open
           </button>
           <button
-            className={`positions-tab ${activeTab === "pending" ? "positions-tab-active" : ""}`}
+            className={`px-4 py-2.5 text-[13px] font-medium transition-colors border-b-2 ${
+              activeTab === "pending"
+                ? "text-white border-white"
+                : "text-[#787b86] border-transparent hover:text-[#d1d4dc]"
+            }`}
             onClick={() => setActiveTab("pending")}
           >
             Pending
           </button>
           <button
-            className={`positions-tab ${activeTab === "closed" ? "positions-tab-active" : ""}`}
+            className={`px-4 py-2.5 text-[13px] font-medium transition-colors border-b-2 ${
+              activeTab === "closed"
+                ? "text-white border-white"
+                : "text-[#787b86] border-transparent hover:text-[#d1d4dc]"
+            }`}
             onClick={() => setActiveTab("closed")}
           >
             Closed
           </button>
         </div>
-        <div className="positions-tab-actions">
-          <button className="icon-btn-sm"><Eye size={16} /></button>
-          <button className="icon-btn-sm"><Layers size={16} /></button>
-          <button className="icon-btn-sm"><MoreVertical size={16} /></button>
-          <button className="icon-btn-sm"><X size={16} /></button>
+        <div className="flex gap-1">
+          <button className="p-1 text-[#787b86] hover:text-[#d1d4dc] hover:bg-[#2c3044] rounded transition-colors"><Eye size={16} /></button>
+          <button className="p-1 text-[#787b86] hover:text-[#d1d4dc] hover:bg-[#2c3044] rounded transition-colors"><Layers size={16} /></button>
+          <button className="p-1 text-[#787b86] hover:text-[#d1d4dc] hover:bg-[#2c3044] rounded transition-colors"><MoreVertical size={16} /></button>
+          <button className="p-1 text-[#787b86] hover:text-[#d1d4dc] hover:bg-[#2c3044] rounded transition-colors"><X size={16} /></button>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="positions-content">
+      <div className="flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#2c3044]">
         {loading && (
-          <div className="positions-empty">Loading...</div>
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-[#4a4e5a] text-sm">
+            Loading...
+          </div>
         )}
 
         {!loading && !hasPositions && (
-          <div className="positions-empty">
-            <Briefcase size={48} className="positions-empty-icon" />
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-[#4a4e5a] text-sm">
+            <Briefcase size={48} className="opacity-50" />
             <span>
               {activeTab === "open"
                 ? "No open positions"
@@ -241,50 +260,61 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
         )}
 
         {!loading && activeTab === "open" && openTrades.length > 0 && (
-          <div className="positions-table-wrap">
-            <table className="positions-table">
-              <thead>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-xs">
+              <thead className="sticky top-0 bg-[#141D23]/90 backdrop-blur-sm z-10">
                 <tr>
-                  <th>Symbol</th>
-                  <th>Type</th>
-                  <th>Entry</th>
-                  <th>Qty</th>
-                  <th>Margin</th>
-                  <th>SL</th>
-                  <th>TP</th>
-                  <th>PnL</th>
-                  <th></th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Symbol</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Type</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Entry</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Qty</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Margin</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">SL</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">TP</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">PnL</th>
+                  <th className="border-b border-[#3F474C]"></th>
                 </tr>
               </thead>
               <tbody>
                 {openTrades.map((t) => (
-                  <tr key={t.order_id}>
-                    <td className="font-medium">{t.symbol}</td>
-                    <td
-                      className={
-                        t.type === "buy" ? "text-emerald-400" : "text-red-400"
-                      }
-                    >
+                  <tr
+                    key={t.order_id}
+                    className={`cursor-pointer transition-colors border-b border-[#3F474C]/30 ${
+                      selectedTradeId === t.order_id 
+                        ? "bg-[#232736] border-l-2 border-l-blue-600" 
+                        : "hover:bg-[#2c3044]"
+                    }`}
+                    onClick={() => onTradeSelect?.({
+                      order_id: t.order_id,
+                      type: t.type,
+                      symbol: t.symbol,
+                      quantity: t.quantity,
+                      entry_price: t.entry_price,
+                      margin: t.margin,
+                      leverage: t.leverage,
+                      stop_loss: t.stop_loss,
+                      take_profit: t.take_profit,
+                    })}
+                  >
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono font-medium">{t.symbol}</td>
+                    <td className={`px-3 py-2 font-mono ${t.type === "buy" ? "text-emerald-400" : "text-red-400"}`}>
                       {t.type.toUpperCase()}
                     </td>
-                    <td>{fmt(t.entry_price, 4)}</td>
-                    <td>{fmt(t.quantity, 6)}</td>
-                    <td>{fmtCurrency(t.margin)}</td>
-                    <td>{t.stop_loss ? fmt(t.stop_loss, 4) : "—"}</td>
-                    <td>{t.take_profit ? fmt(t.take_profit, 4) : "—"}</td>
-                    <td
-                      className={
-                        (t.unrealized_pnl || 0) >= 0
-                          ? "text-emerald-400"
-                          : "text-red-400"
-                      }
-                    >
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{fmt(t.entry_price, 4)}</td>
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{fmt(t.quantity, 6)}</td>
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{fmtCurrency(t.margin)}</td>
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{t.stop_loss ? fmt(t.stop_loss, 4) : "—"}</td>
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{t.take_profit ? fmt(t.take_profit, 4) : "—"}</td>
+                    <td className={`px-3 py-2 font-mono ${(t.unrealized_pnl || 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {fmtCurrency(t.unrealized_pnl || 0)}
                     </td>
-                    <td>
+                    <td className="px-3 py-2">
                       <button
-                        className="positions-close-btn"
-                        onClick={() => closeTrade(t.order_id)}
+                        className="bg-red-500/90 hover:bg-red-600 text-white border-none px-3 py-1 rounded-[4px] text-[11px] font-medium cursor-pointer transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          closeTrade(t.order_id);
+                        }}
                       >
                         Close
                       </button>
@@ -297,55 +327,44 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
         )}
 
         {!loading && activeTab === "closed" && closedTrades.length > 0 && (
-          <div className="positions-table-wrap">
-            <table className="positions-table">
-              <thead>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-xs">
+              <thead className="sticky top-0 bg-[#141D23]/90 backdrop-blur-sm z-10">
                 <tr>
-                  <th>Symbol</th>
-                  <th>Type</th>
-                  <th>Entry</th>
-                  <th>Exit</th>
-                  <th>Qty</th>
-                  <th>PnL</th>
-                  <th>Status</th>
-                  <th>Closed</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Symbol</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Type</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Entry</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Exit</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Qty</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">PnL</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Status</th>
+                  <th className="text-left px-3 py-2 text-[#4a4e5a] font-medium text-[11px] uppercase tracking-wide border-b border-[#3F474C]">Closed</th>
                 </tr>
               </thead>
               <tbody>
                 {closedTrades.map((t) => (
-                  <tr key={t.order_id}>
-                    <td className="font-medium">{t.symbol}</td>
-                    <td
-                      className={
-                        t.type === "buy" ? "text-emerald-400" : "text-red-400"
-                      }
-                    >
+                  <tr key={t.order_id} className="transition-colors border-b border-[#3F474C]/30 hover:bg-[#2c3044]">
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono font-medium">{t.symbol}</td>
+                    <td className={`px-3 py-2 font-mono ${t.type === "buy" ? "text-emerald-400" : "text-red-400"}`}>
                       {t.type.toUpperCase()}
                     </td>
-                    <td>{fmt(t.entry_price, 4)}</td>
-                    <td>{t.exit_price ? fmt(t.exit_price, 4) : "—"}</td>
-                    <td>{fmt(t.quantity, 6)}</td>
-                    <td
-                      className={
-                        (t.realized_pnl || 0) >= 0
-                          ? "text-emerald-400"
-                          : "text-red-400"
-                      }
-                    >
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{fmt(t.entry_price, 4)}</td>
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{t.exit_price ? fmt(t.exit_price, 4) : "—"}</td>
+                    <td className="px-3 py-2 text-[#d1d4dc] font-mono">{fmt(t.quantity, 6)}</td>
+                    <td className={`px-3 py-2 font-mono ${(t.realized_pnl || 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {fmtCurrency(t.realized_pnl || 0)}
                     </td>
-                    <td>
-                      <span
-                        className={`positions-status-badge ${
+                    <td className="px-3 py-2">
+                      <span className={`px-2 py-0.5 rounded-[4px] text-[11px] capitalize ${
                           t.status === "closed"
-                            ? "positions-status-closed"
-                            : "positions-status-liq"
+                            ? "bg-[#26a69a]/15 text-[#26a69a]"
+                            : "bg-[#ef5350]/15 text-[#ef5350]"
                         }`}
                       >
                         {t.status}
                       </span>
                     </td>
-                    <td className="text-xs">
+                    <td className="px-3 py-2 text-xs text-[#d1d4dc] font-mono">
                       {t.closed_at
                         ? new Date(t.closed_at).toLocaleString()
                         : "—"}
@@ -359,34 +378,34 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
       </div>
 
       {/* Account Summary Footer */}
-      <div className="account-summary-footer">
-        <div className="account-summary-item">
-          <span className="account-summary-label">Equity:</span>
-          <span className="account-summary-value">
+      <div className="flex items-center gap-6 px-4 py-2 bg-[#141D23] border-t border-[#3F474C] text-xs shrink-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#787b86]">Equity:</span>
+          <span className="text-[#d1d4dc] font-mono font-semibold">
             {fmtCurrency(accountSummary?.equity || 0)} USD
           </span>
         </div>
-        <div className="account-summary-item">
-          <span className="account-summary-label">Free Margin:</span>
-          <span className="account-summary-value">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#787b86]">Free Margin:</span>
+          <span className="text-[#d1d4dc] font-mono font-semibold">
             {fmtCurrency(accountSummary?.freeMargin || 0)} USD
           </span>
         </div>
-        <div className="account-summary-item">
-          <span className="account-summary-label">Balance:</span>
-          <span className="account-summary-value">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#787b86]">Balance:</span>
+          <span className="text-[#d1d4dc] font-mono font-semibold">
             {fmtCurrency(accountSummary?.balance || 0)} USD
           </span>
         </div>
-        <div className="account-summary-item">
-          <span className="account-summary-label">Margin:</span>
-          <span className="account-summary-value">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#787b86]">Margin:</span>
+          <span className="text-[#d1d4dc] font-mono font-semibold">
             {fmtCurrency(accountSummary?.totalMarginUsed || 0)} USD
           </span>
         </div>
-        <div className="account-summary-item">
-          <span className="account-summary-label">Margin level:</span>
-          <span className="account-summary-value">—</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#787b86]">Margin level:</span>
+          <span className="text-[#d1d4dc] font-mono font-semibold">—</span>
         </div>
       </div>
     </div>

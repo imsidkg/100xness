@@ -85,67 +85,65 @@ const InstrumentPanel: React.FC<InstrumentPanelProps> = ({
     );
   }, [instrumentList, searchQuery]);
 
-  const getBidAskClass = (direction: "up" | "down" | "neutral") => {
-    if (direction === "up") return "instrument-price-up";
-    if (direction === "down") return "instrument-price-down";
-    return "";
-  };
+
 
   return (
-    <div className="instrument-panel">
+    <div className="flex flex-col h-full bg-[#141D23]">
       {/* Header */}
-      <div className="instrument-panel-header">
-        <span className="instrument-panel-title">INSTRUMENTS</span>
-        <div className="instrument-panel-actions">
-          <button className="icon-btn-sm">⋮</button>
-          <button className="icon-btn-sm">✕</button>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#3F474C]">
+        <span className="text-[11px] font-semibold tracking-wider text-[#787b86] uppercase">
+          INSTRUMENTS
+        </span>
+        <div className="flex gap-1">
+          <button className="p-1 text-[#787b86] hover:text-[#d1d4dc] hover:bg-[#2c3044] rounded transition-colors leading-none">⋮</button>
+          <button className="p-1 text-[#787b86] hover:text-[#d1d4dc] hover:bg-[#2c3044] rounded transition-colors leading-none">✕</button>
         </div>
       </div>
 
       {/* Search & Filter */}
-      <div className="instrument-search-row">
-        <div className="instrument-search-box">
-          <Search size={14} className="instrument-search-icon" />
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        <div className="flex-1 flex items-center gap-1.5 bg-[#1e222d] border border-[#3F474C] rounded-md px-2.5 py-1.5">
+          <Search size={14} className="text-[#4a4e5a] shrink-0" />
           <input
             type="text"
             placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="instrument-search-input"
+            className="bg-transparent border-none outline-none text-[#d1d4dc] text-xs w-full placeholder:text-[#4a4e5a]"
           />
         </div>
-        <div className="instrument-filter-dropdown">
+        <button className="flex items-center gap-1 bg-[#1e222d] border border-[#3F474C] rounded-md px-2.5 py-1.5 text-[#787b86] text-xs whitespace-nowrap hover:text-[#d1d4dc] transition-colors">
           <span>Favorites</span>
           <ChevronDown size={14} />
-        </div>
+        </button>
       </div>
 
       {/* Column Headers */}
-      <div className="instrument-col-headers">
-        <span className="instrument-col-symbol">Symbol</span>
-        <span className="instrument-col-signal">Signal</span>
-        <span className="instrument-col-bid">Bid</span>
-        <span className="instrument-col-ask">Ask</span>
+      <div className="grid grid-cols-[1fr_50px_1fr_1fr] px-3 py-1.5 text-[11px] text-[#4a4e5a] capitalize border-b border-[#3F474C]">
+        <span>Symbol</span>
+        <span className="text-center">Signal</span>
+        <span className="text-right">Bid</span>
+        <span className="text-right">Ask</span>
       </div>
 
       {/* Instrument Rows */}
-      <div className="instrument-list">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#2c3044]">
         {filtered.map((inst) => (
           <div
             key={inst.symbol}
-            className={`instrument-row ${
+            className={`grid grid-cols-[20px_24px_1fr_40px_1fr_1fr] items-center px-3 py-2.5 cursor-pointer transition-colors border-b border-[#3F474C]/30 ${
               inst.symbol.toLowerCase() === selectedSymbol.toLowerCase()
-                ? "instrument-row-selected"
-                : ""
+                ? "bg-[#232736]"
+                : "hover:bg-[#2c3044]"
             }`}
             onClick={() => onSymbolSelect(inst.symbol)}
           >
-            <div className="instrument-row-grip">
-              <GripVertical size={12} className="text-gray-600" />
+            <div className="flex items-center">
+              <GripVertical size={12} className="text-[#4a4e5a]" />
             </div>
-            <div className="instrument-row-icon">{inst.icon}</div>
-            <span className="instrument-row-name">{inst.displayName}</span>
-            <div className="instrument-row-signal">
+            <div className="flex items-center justify-center text-base">{inst.icon}</div>
+            <span className="font-semibold text-[13px] text-[#d1d4dc] pl-1">{inst.displayName}</span>
+            <div className="flex items-center justify-center">
               {inst.direction === "up" && (
                 <TrendingUp size={14} className="text-emerald-400" />
               )}
@@ -153,19 +151,31 @@ const InstrumentPanel: React.FC<InstrumentPanelProps> = ({
                 <TrendingDown size={14} className="text-red-400" />
               )}
               {inst.direction === "neutral" && (
-                <Minus size={14} className="text-gray-500" />
+                <Minus size={14} className="text-[#4a4e5a]" />
               )}
             </div>
-            <span
-              className={`instrument-row-bid ${getBidAskClass(inst.direction)}`}
-            >
-              {formatPrice(inst.bid)}
-            </span>
-            <span
-              className={`instrument-row-ask ${getBidAskClass(inst.direction)}`}
-            >
-              {formatPrice(inst.ask)}
-            </span>
+            <div className="text-right">
+              <span
+                className={`font-mono text-xs px-2 py-0.5 rounded transition-all duration-300 ${
+                  inst.direction === "up" ? "bg-[#26a69a]/15 text-[#26a69a]" : 
+                  inst.direction === "down" ? "bg-[#ef5350]/15 text-[#ef5350]" : 
+                  "text-[#d1d4dc]"
+                }`}
+              >
+                {formatPrice(inst.bid)}
+              </span>
+            </div>
+            <div className="text-right">
+              <span
+                className={`font-mono text-xs px-2 py-0.5 rounded transition-all duration-300 ${
+                  inst.direction === "up" ? "bg-[#26a69a]/15 text-[#26a69a]" : 
+                  inst.direction === "down" ? "bg-[#ef5350]/15 text-[#ef5350]" : 
+                  "text-[#d1d4dc]"
+                }`}
+              >
+                {formatPrice(inst.ask)}
+              </span>
+            </div>
           </div>
         ))}
       </div>
