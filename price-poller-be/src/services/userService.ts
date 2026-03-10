@@ -51,3 +51,22 @@ export const getAccountSummary = async (userId: number) => {
     client.release();
   }
 };
+
+export const depositFunds = async (userId: number, amount: number) => {
+  if (amount <= 0) {
+    throw new Error("Deposit amount must be positive");
+  }
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      "UPDATE balances SET balance = balance + $1 WHERE user_id = $2 RETURNING balance",
+      [amount, userId]
+    );
+    if (result.rows.length === 0) {
+      throw new Error("User balance record not found");
+    }
+    return parseFloat(result.rows[0].balance);
+  } finally {
+    client.release();
+  }
+};

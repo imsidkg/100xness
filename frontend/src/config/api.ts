@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
   SIGNUP: `${API_BASE_URL}/api/v1/user/signup`,
   SIGNIN: `${API_BASE_URL}/api/v1/user/signin`,
   ACCOUNT_SUMMARY: `${API_BASE_URL}/api/v1/user/account-summary`,
+  DEPOSIT: `${API_BASE_URL}/api/v1/user/deposit`,
 
   TRADE: `${API_BASE_URL}/api/v1/trade`,
   TRADE_OPEN: `${API_BASE_URL}/api/v1/trade/open`,

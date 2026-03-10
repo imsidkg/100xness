@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { pool } from "../config/db";
 import { User } from "../models/user";
 import { getLatestTradePrice } from "../services/timescaleService";
-import { getAccountSummary as getAccountSummaryService } from "../services/userService";
+import { getAccountSummary as getAccountSummaryService, depositFunds } from "../services/userService";
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "your-default-secret";
@@ -126,6 +126,34 @@ export const getAccountSummary = async (
     res.status(200).json(summary);
   } catch (error) {
     console.error("Error fetching account summary:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deposit = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const userId: number = req.userId!;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { amount } = req.body;
+    if (!amount || typeof amount !== "number" || amount <= 0) {
+      return res
+        .status(400)
+        .json({ message: "A valid positive amount is required." });
+    }
+
+    const newBalance = await depositFunds(userId, amount);
+    res.status(200).json({ balance: newBalance, message: "Deposit successful" });
+  } catch (error: any) {
+    console.error("Error processing deposit:", error);
+    if (error.message === "User balance record not found") {
+      return res.status(404).json({ message: error.message });
+    }
     res.status(500).json({ message: "Internal server error" });
   }
 };

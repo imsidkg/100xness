@@ -1,13 +1,4 @@
-import React, { useState, useMemo } from "react";
-
-interface InstrumentData {
-  symbol: string;
-  displayName: string;
-  icon?: string;
-  bid: string;
-  ask: string;
-  direction: "up" | "down" | "neutral";
-}
+import React, { useRef, useState, useEffect } from "react";
 
 interface InstrumentPanelProps {
   prices: { [symbol: string]: { bid: string; ask: string } };
@@ -26,54 +17,65 @@ const SYMBOL_META: Record<string, { displayName: string; icon: string }> = {
   usoil: { displayName: "USOIL", icon: "🛢" },
 };
 
+const GREEN = "#26a69a";
+const RED = "#ef5350";
+const NEUTRAL = "#1E2830";
+
+/** Single price cell that tracks its own value and flashes green/red */
+const PriceCell: React.FC<{ value: string }> = ({ value }) => {
+  const prevVal = useRef<number | null>(null);
+  const [bg, setBg] = useState(NEUTRAL);
+
+  useEffect(() => {
+    const numVal = parseFloat(value) || 0;
+    if (prevVal.current !== null) {
+      if (numVal > prevVal.current) {
+        setBg(GREEN);
+      } else if (numVal < prevVal.current) {
+        setBg(RED);
+      }
+    }
+    prevVal.current = numVal;
+  }, [value]);
+
+  return (
+    <span
+      style={{
+        backgroundColor: bg,
+        transition: "background-color 0.2s ease",
+        fontFamily: '"JetBrains Mono", "SF Mono", "Cascadia Code", monospace',
+        fontSize: "15px",
+        color: "#fff",
+        display: "inline-block",
+        width: "100%",
+        padding: "6px 8px",
+        borderRadius: "4px",
+        textAlign: "right",
+      }}
+    >
+      {formatPrice(value)}
+    </span>
+  );
+};
+
 const InstrumentPanel: React.FC<InstrumentPanelProps> = ({
   prices,
   selectedSymbol,
   onSymbolSelect,
 }) => {
-  const [prevPrices, setPrevPrices] = useState<
-    Record<string, { bid: string; ask: string }>
-  >({});
-
-  // Track price direction
-  const instrumentList: InstrumentData[] = useMemo(() => {
-    const list = Object.entries(prices).map(([symbol, price]) => {
-      const meta = SYMBOL_META[symbol.toLowerCase()] || {
-        displayName: symbol.toUpperCase(),
-        icon: "●",
-      };
-      const prev = prevPrices[symbol];
-      let direction: "up" | "down" | "neutral" = "neutral";
-      if (prev) {
-        const prevBid = parseFloat(prev.bid);
-        const currBid = parseFloat(price.bid);
-        if (currBid > prevBid) direction = "up";
-        else if (currBid < prevBid) direction = "down";
-      }
-      return {
-        symbol,
-        displayName: meta.displayName,
-        icon: meta.icon,
-        bid: price.bid,
-        ask: price.ask,
-        direction,
-      };
-    });
-    setPrevPrices({ ...prices });
-    return list;
-  }, [prices]);
+  const symbols = Object.entries(prices);
 
   return (
     <div className="flex flex-col h-full bg-[#141D23]">
       {/* Header */}
       <div className="flex items-center px-4 border-b border-[#3F474C] min-h-[40px]">
-        <span className="text-[14px] font-normal text-[#787b86] uppercase">
+        <span className="text-[14px] font-normal text-[#ffffff] uppercase">
           Market Data
         </span>
       </div>
 
       {/* Column Headers */}
-      <div className="grid grid-cols-3 px-4 py-2 text-[14px] text-[#787b86] border-b border-[#3F474C]">
+      <div className="grid grid-cols-[1fr_1fr_1fr] px-3 py-2 text-[14px] text-[#787b86] border-b border-[#3F474C]">
         <span>Symbol</span>
         <span className="text-right">Bid</span>
         <span className="text-right">Ask</span>
@@ -81,34 +83,37 @@ const InstrumentPanel: React.FC<InstrumentPanelProps> = ({
 
       {/* Instrument Rows */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#ffffff]">
-        {instrumentList.map((inst) => (
-          <div
-            key={inst.symbol}
-            className={`grid grid-cols-3 items-center px-4 py-3 cursor-pointer transition-colors border-b border-[#3F474C]/30 ${
-              inst.symbol.toLowerCase() === selectedSymbol.toLowerCase()
-                ? "bg-[#1E2D38]"
-                : "hover:bg-[#1A2730]"
-            }`}
-            onClick={() => onSymbolSelect(inst.symbol)}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-base">{inst.icon}</span>
-              <span className="font-semibold text-[16px] text-[#d1d4dc]">
-                {inst.displayName}
-              </span>
+        {symbols.map(([symbol, price]) => {
+          const meta = SYMBOL_META[symbol.toLowerCase()] || {
+            displayName: symbol.toUpperCase(),
+            icon: "●",
+          };
+
+          return (
+            <div
+              key={symbol}
+              className={`grid grid-cols-[1fr_1fr_1fr] items-center px-3 py-2 cursor-pointer border-b border-[#3F474C]/30 ${
+                symbol.toLowerCase() === selectedSymbol.toLowerCase()
+                  ? "bg-[#1E2D38]"
+                  : "hover:bg-[#1A2730]"
+              }`}
+              onClick={() => onSymbolSelect(symbol)}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base">{meta.icon}</span>
+                <span className="font-semibold text-[16px] text-[#d1d4dc]">
+                  {meta.displayName}
+                </span>
+              </div>
+              <div className="text-right pl-1">
+                <PriceCell value={price.bid} />
+              </div>
+              <div className="text-right pl-1">
+                <PriceCell value={price.ask} />
+              </div>
             </div>
-            <div className="text-right">
-              <span className="font-mono text-[16px] text-[#d1d4dc]">
-                {formatPrice(inst.bid)}
-              </span>
-            </div>
-            <div className="text-right">
-              <span className="font-mono text-[16px] text-[#d1d4dc]">
-                {formatPrice(inst.ask)}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

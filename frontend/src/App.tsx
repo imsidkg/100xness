@@ -512,6 +512,7 @@ function App() {
             dispatch({ type: "SET_INTERVAL", payload: interval })
           }
           onLogout={handleLogout}
+          onDepositSuccess={fetchAccountSummary}
           userEmail={userEmail}
           token={localStorage.getItem("token")}
         />

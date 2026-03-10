@@ -25,7 +25,7 @@
   --td-font-mono:
     "JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", ui-monospace,
     monospace;
-  --td-font-sans: "aktiv-grotesk", sans-serif;
+  --td-font-sans: "DM Sans", sans-serif;
 }
 
 /* ---- Global Trading Layout ---- */
@@ -242,20 +242,34 @@
 
 /* Flash animation for price changes */
 @keyframes flashGreen {
-  0% {
-    background: rgba(38, 166, 154, 0.4);
+  0%, 15% {
+    background-color: rgba(38, 166, 154, 0.6);
+  }
+  50% {
+    background-color: rgba(38, 166, 154, 0.25);
   }
   100% {
-    background: var(--td-green-bg);
+    background-color: transparent;
   }
 }
 @keyframes flashRed {
-  0% {
-    background: rgba(239, 83, 80, 0.4);
+  0%, 15% {
+    background-color: rgba(239, 83, 80, 0.6);
+  }
+  50% {
+    background-color: rgba(239, 83, 80, 0.25);
   }
   100% {
-    background: var(--td-red-bg);
+    background-color: transparent;
   }
+}
+
+.animate-flash-green {
+  animation: flashGreen 0.8s ease-out forwards;
+}
+
+.animate-flash-red {
+  animation: flashRed 0.8s ease-out forwards;
 }
 
 /* ========================================

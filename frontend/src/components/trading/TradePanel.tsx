@@ -11,6 +11,7 @@ interface TradePanelProps {
   tradeError: string | null;
   tradeToEdit?: TradeToEdit | null;
   onCancelEdit?: () => void;
+  accountSummary?: any;
 }
 
 const TradePanel: React.FC<TradePanelProps> = ({
@@ -22,16 +23,14 @@ const TradePanel: React.FC<TradePanelProps> = ({
   tradeError,
   tradeToEdit,
   onCancelEdit,
+  accountSummary,
 }) => {
   const [orderTab, setOrderTab] = useState<"market" | "pending">("market");
-  const [volume, setVolume] = useState(0.2);
+  const [volume, setVolume] = useState(0.01);
   const [takeProfit, setTakeProfit] = useState<number | undefined>(undefined);
   const [stopLoss, setStopLoss] = useState<number | undefined>(undefined);
-  const [tpMode, setTpMode] = useState<"price" | "pips">("price");
-  const [slMode, setSlMode] = useState<"price" | "pips">("price");
   const [limitPrice, setLimitPrice] = useState<number | undefined>(undefined);
   const [leverage, setLeverage] = useState<number>(1);
-  const [margin, setMargin] = useState<number | undefined>(undefined);
   const [selectedSide, setSelectedSide] = useState<"buy" | "sell" | null>(null);
 
   // Modify form state
@@ -69,7 +68,6 @@ const TradePanel: React.FC<TradePanelProps> = ({
       limitPrice: orderTab === "pending" ? limitPrice : undefined,
       stopLoss,
       takeProfit,
-      margin,
     });
   };
 
@@ -292,7 +290,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
     <div className="flex flex-col h-full bg-[#141D23] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#2c3044]">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[#3F474C]">
-        <span className="text-[14px] font-normal text-[#787b86] uppercase">
+        <span className="text-[14px] font-normal text-white uppercase">
           Trade Execution
         </span>
       </div>
@@ -456,13 +454,9 @@ const TradePanel: React.FC<TradePanelProps> = ({
                 )
               }
             />
-            <button
-              className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2 hover:text-white transition-colors"
-              style={{ backgroundColor: "transparent" }}
-              onClick={() => setTpMode(tpMode === "price" ? "pips" : "price")}
-            >
-              {tpMode === "price" ? "Price" : "Pips"} ▾
-            </button>
+            <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+              Price
+            </span>
             <button
               className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
               style={{ backgroundColor: "transparent" }}
@@ -509,29 +503,6 @@ const TradePanel: React.FC<TradePanelProps> = ({
           </div>
         </div>
 
-        {/* Margin */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <label className="text-[#d1d4dc] text-[14px] font-medium">
-              Margin (Optional)
-            </label>
-          </div>
-          <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
-            <input
-              type="number"
-              className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
-              value={margin ?? ""}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setMargin(
-                  e.target.value ? parseFloat(e.target.value) : undefined,
-                )
-              }
-              placeholder="Not set"
-              step="0.01"
-            />
-          </div>
-        </div>
-
         {/* Stop Loss */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5">
@@ -552,13 +523,9 @@ const TradePanel: React.FC<TradePanelProps> = ({
                 )
               }
             />
-            <button
-              className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2 hover:text-white transition-colors"
-              style={{ backgroundColor: "transparent" }}
-              onClick={() => setSlMode(slMode === "price" ? "pips" : "price")}
-            >
-              {slMode === "price" ? "Price" : "Pips"} ▾
-            </button>
+            <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+              Price
+            </span>
             <button
               className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
               style={{ backgroundColor: "transparent" }}
@@ -618,11 +585,24 @@ const TradePanel: React.FC<TradePanelProps> = ({
         )}
       </div>
 
-      {/* Footer */}
-      {/* <div className="flex items-center justify-between px-4 py-3 mt-auto border-t border-[#3F474C] text-[14px] text-[#787b86]">
-        <div className="font-semibold tracking-wider">100x</div>
-        <div>4.3.1</div>
-      </div> */}
+      {/* Footer — Net PnL */}
+      <div className="flex items-center justify-between px-4 py-3 mt-auto border-t border-[#3F474C] text-[13px]">
+        <span className="text-[#787b86] font-medium">Net P&L</span>
+        <span
+          className={`font-semibold font-mono ${
+            (accountSummary?.totalUnrealizedPnl ?? 0) >= 0
+              ? "text-[#26a69a]"
+              : "text-[#ef5350]"
+          }`}
+        >
+          {(accountSummary?.totalUnrealizedPnl ?? 0) >= 0 ? "+" : ""}
+          {Number(accountSummary?.totalUnrealizedPnl ?? 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}{" "}
+          USD
+        </span>
+      </div>
     </div>
   );
 };
