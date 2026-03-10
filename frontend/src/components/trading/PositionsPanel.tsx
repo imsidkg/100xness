@@ -310,9 +310,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
         )}
 
         {!loading && activeTab === "open" && openTrades.length > 0 && (
-          <div className="overflow-x-auto">
+          <div>
             <table className="w-full border-collapse text-[14px]">
-              <thead className="sticky top-0 bg-[#141D23]/90 backdrop-blur-sm z-10">
+              <thead className="sticky top-0 bg-[#141D23] z-10">
                 <tr>
                   <th className="text-left px-3 py-2.5 text-[#4a4e5a] font-medium text-[14px] uppercase tracking-wide border-b border-[#3F474C]">
                     Symbol
@@ -424,9 +424,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
         )}
 
         {!loading && activeTab === "pending" && pendingTrades.length > 0 && (
-          <div className="overflow-x-auto">
+          <div>
             <table className="w-full border-collapse text-[14px]">
-              <thead className="sticky top-0 bg-[#141D23]/90 backdrop-blur-sm z-10">
+              <thead className="sticky top-0 bg-[#141D23] z-10">
                 <tr>
                   <th className="text-left px-3 py-2.5 text-[#4a4e5a] font-medium text-[14px] uppercase tracking-wide border-b border-[#3F474C]">
                     Symbol
@@ -513,9 +513,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
         )}
 
         {!loading && activeTab === "closed" && closedTrades.length > 0 && (
-          <div className="overflow-x-auto">
+          <div>
             <table className="w-full border-collapse text-[14px]">
-              <thead className="sticky top-0 bg-[#141D23]/90 backdrop-blur-sm z-10">
+              <thead className="sticky top-0 bg-[#141D23] z-10">
                 <tr>
                   <th className="text-left px-3 py-2.5 text-[#4a4e5a] font-medium text-[14px] uppercase tracking-wide border-b border-[#3F474C]">
                     Symbol
@@ -608,34 +608,47 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
       </div>
 
       {/* Account Summary Footer */}
-      <div className="flex items-center gap-6 px-4 py-2 bg-[#141D23] border-t border-[#3F474C] text-[13px] shrink-0">
-        <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-evenly px-3 py-1.5 bg-[#141D23] border-t border-[#3F474C] text-[11px] shrink-0 flex-nowrap whitespace-nowrap sticky bottom-0 z-20">
+        <div className="flex items-center gap-1">
           <span className="text-[#787b86]">Equity:</span>
           <span className="text-[#d1d4dc] font-mono font-semibold">
-            {fmtCurrency(accountSummary?.equity || 0)} USD
+            {fmtCurrency(accountSummary?.equity || 0)}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <span className="text-[#787b86]">Free Margin:</span>
           <span className="text-[#d1d4dc] font-mono font-semibold">
-            {fmtCurrency(accountSummary?.freeMargin || 0)} USD
+            {fmtCurrency(accountSummary?.freeMargin || 0)}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <span className="text-[#787b86]">Balance:</span>
           <span className="text-[#d1d4dc] font-mono font-semibold">
-            {fmtCurrency(accountSummary?.balance || 0)} USD
+            {fmtCurrency(accountSummary?.balance || 0)}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <span className="text-[#787b86]">Margin:</span>
           <span className="text-[#d1d4dc] font-mono font-semibold">
-            {fmtCurrency(accountSummary?.totalMarginUsed || 0)} USD
+            {fmtCurrency(accountSummary?.totalMarginUsed || 0)}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        {/* <div className="flex items-center gap-1">
           <span className="text-[#787b86]">Margin level:</span>
           <span className="text-[#d1d4dc] font-mono font-semibold">—</span>
+        </div> */}
+        <div className="flex items-center gap-1">
+          <span className="text-[#787b86]">Net P&L:</span>
+          <span
+            className={`font-mono font-semibold ${
+              (accountSummary?.totalUnrealizedPnl ?? 0) >= 0
+                ? "text-[#26a69a]"
+                : "text-[#ef5350]"
+            }`}
+          >
+            {(accountSummary?.totalUnrealizedPnl ?? 0) >= 0 ? "+" : ""}
+            {fmtCurrency(accountSummary?.totalUnrealizedPnl || 0)}
+          </span>
         </div>
       </div>
     </div>

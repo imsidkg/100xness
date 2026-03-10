@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { CircleHelp } from "lucide-react";
+import { CircleHelp, Pencil } from "lucide-react";
 import type { TradeToEdit } from "../TradingDashboard";
 
 interface TradePanelProps {
@@ -23,7 +23,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
   tradeError,
   tradeToEdit,
   onCancelEdit,
-  accountSummary,
+  accountSummary: _accountSummary,
 }) => {
   const [orderTab, setOrderTab] = useState<"market" | "pending">("market");
   const [volume, setVolume] = useState(0.01);
@@ -32,6 +32,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
   const [limitPrice, setLimitPrice] = useState<number | undefined>(undefined);
   const [leverage, setLeverage] = useState<number>(1);
   const [selectedSide, setSelectedSide] = useState<"buy" | "sell" | null>(null);
+  const [editingLeverage, setEditingLeverage] = useState(false);
 
   // Modify form state
   const [editTp, setEditTp] = useState<number | undefined>(undefined);
@@ -482,27 +483,6 @@ const TradePanel: React.FC<TradePanelProps> = ({
           </div>
         </div>
 
-        {/* Leverage */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[#d1d4dc] text-[14px] font-medium">
-            Leverage
-          </label>
-          <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
-            <input
-              type="number"
-              className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] font-mono"
-              value={leverage}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setLeverage(parseFloat(e.target.value) || 1)
-              }
-              min="1"
-            />
-            <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
-              x
-            </span>
-          </div>
-        </div>
-
         {/* Stop Loss */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5">
@@ -558,50 +538,130 @@ const TradePanel: React.FC<TradePanelProps> = ({
           </div>
         )}
 
-        {/* Confirm / Cancel Buttons */}
-        {selectedSide && (
-          <div className="flex flex-col gap-2 mt-4">
-            <button
-              className="flex-1 py-2.5 px-4 rounded text-white font-semibold text-[14px] transition-colors"
-              style={{
-                backgroundColor:
-                  selectedSide === "sell" ? "#ef4444" : "#148BF9",
-              }}
-              onClick={() => {
-                handleTrade(selectedSide);
-                setSelectedSide(null);
-              }}
-            >
-              Confirm Order
-            </button>
-            <button
-              className="flex-1 py-2.5 px-4 rounded text-white font-semibold text-[14px] transition-colors border border-[#3F474C]"
-              style={{ backgroundColor: "#222E34" }}
-              onClick={() => setSelectedSide(null)}
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-      </div>
+        {/* Order Summary — shown when side is selected */}
+        {selectedSide && (() => {
+          const price = selectedSide === "buy" ? askNum : bidNum;
+          const notional = price * volume;
+          const marginRequired = notional / (leverage || 1);
+          const fees = notional * 0.00075; // 0.075% commission
+          const swap = -(notional * 0.0001); // simulated overnight swap
+          const pipValue = volume * 0.1;
 
-      {/* Footer — Net PnL */}
-      <div className="flex items-center justify-between px-4 py-3 mt-auto border-t border-[#3F474C] text-[13px]">
-        <span className="text-[#787b86] font-medium">Net P&L</span>
-        <span
-          className={`font-semibold font-mono ${
-            (accountSummary?.totalUnrealizedPnl ?? 0) >= 0
-              ? "text-[#26a69a]"
-              : "text-[#ef5350]"
-          }`}
-        >
-          {(accountSummary?.totalUnrealizedPnl ?? 0) >= 0 ? "+" : ""}
-          {Number(accountSummary?.totalUnrealizedPnl ?? 0).toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}{" "}
-          USD
-        </span>
+          return (
+            <div className="flex flex-col gap-0 mt-4">
+              {/* Confirm / Cancel buttons */}
+              <div className="flex flex-col gap-2">
+                <div
+                  className="py-3 px-4 text-center text-white font-semibold text-[14px] cursor-pointer transition-colors rounded"
+                  style={{
+                    backgroundColor:
+                      selectedSide === "sell" ? "#ef4444" : "#148BF9",
+                  }}
+                  onClick={() => {
+                    handleTrade(selectedSide);
+                    setSelectedSide(null);
+                  }}
+                >
+                  Confirm {selectedSide === "buy" ? "Buy" : "Sell"} {volume.toFixed(2)} lots
+                </div>
+                <div
+                  className="py-2.5 px-4 text-center text-[#d1d4dc] font-semibold text-[14px] cursor-pointer transition-colors rounded hover:bg-[#1A2228]"
+                  style={{ backgroundColor: "#222E34" }}
+                  onClick={() => {
+                    setSelectedSide(null);
+                  }}
+                >
+                  Cancel
+                </div>
+              </div>
+
+              {/* Summary details */}
+              <div className="flex flex-col gap-0 mt-3">
+                {/* Fees */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Fees:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#d1d4dc] font-mono">
+                      ≈ {fees.toFixed(2)} USD
+                    </span>
+                    <CircleHelp size={12} className="text-[#4a4e5a]" />
+                  </div>
+                </div>
+
+                {/* Leverage — editable */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Leverage:</span>
+                  <div className="flex items-center gap-1.5">
+                    {editingLeverage ? (
+                      <input
+                        type="number"
+                        className="w-16 bg-[#141D23] border border-[#3F474C] rounded px-2 py-0.5 text-[13px] text-[#d1d4dc] font-mono outline-none text-right"
+                        value={leverage}
+                        onChange={(e) =>
+                          setLeverage(Math.max(1, parseInt(e.target.value) || 1))
+                        }
+                        onBlur={() => setEditingLeverage(false)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") setEditingLeverage(false);
+                        }}
+                        autoFocus
+                        min="1"
+                      />
+                    ) : (
+                      <span className="text-[#d1d4dc] font-mono">
+                        1:{leverage}
+                      </span>
+                    )}
+                    <Pencil
+                      size={12}
+                      className="text-[#787b86] hover:text-white cursor-pointer transition-colors"
+                      onClick={() => setEditingLeverage(true)}
+                    />
+                  </div>
+                </div>
+
+                {/* Margin */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Margin:</span>
+                  <span className="text-[#d1d4dc] font-mono">
+                    {marginRequired.toFixed(2)} USD
+                  </span>
+                </div>
+
+                {/* Swap */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Swap:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#d1d4dc] font-mono">
+                      {swap.toFixed(2)} USD
+                    </span>
+                    <CircleHelp size={12} className="text-[#4a4e5a]" />
+                  </div>
+                </div>
+
+                {/* Pip Value */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Pip Value:</span>
+                  <span className="text-[#d1d4dc] font-mono">
+                    {pipValue.toFixed(2)} USD
+                  </span>
+                </div>
+
+                {/* Volume in USD */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Volume in USD:</span>
+                  <span className="text-[#d1d4dc] font-mono">
+                    {notional.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    USD
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

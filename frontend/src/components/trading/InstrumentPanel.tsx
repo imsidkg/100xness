@@ -6,10 +6,25 @@ interface InstrumentPanelProps {
   onSymbolSelect: (symbol: string) => void;
 }
 
-const SYMBOL_META: Record<string, { displayName: string; icon: string }> = {
-  btcusdt: { displayName: "BTC", icon: "₿" },
-  ethusdt: { displayName: "ETH", icon: "◆" },
-  solusdt: { displayName: "SOL", icon: "◎" },
+const SYMBOL_META: Record<string, { displayName: string; icon: string; logo?: string; logoStyle?: React.CSSProperties }> = {
+  btcusdt: {
+    displayName: "BTC",
+    icon: "₿",
+    logo: "/bitcoin-btc-logo.svg",
+    logoStyle: { width: 20, height: 20, borderRadius: "50%", objectFit: "contain" },
+  },
+  ethusdt: {
+    displayName: "ETH",
+    icon: "◆",
+    logo: "/ethereum-eth-logo.svg",
+    logoStyle: { width: 20, height: 20, objectFit: "contain", filter: "brightness(0) invert(1)" },
+  },
+  solusdt: {
+    displayName: "SOL",
+    icon: "◎",
+    logo: "/solana-sol-logo.svg",
+    logoStyle: { width: 14, height: 14, objectFit: "contain" },
+  },
   xauusd: { displayName: "XAU/USD", icon: "🥇" },
   xagusd: { displayName: "XAG/USD", icon: "🥈" },
   eurusd: { displayName: "EUR/USD", icon: "€" },
@@ -100,7 +115,15 @@ const InstrumentPanel: React.FC<InstrumentPanelProps> = ({
               onClick={() => onSymbolSelect(symbol)}
             >
               <div className="flex items-center gap-2">
-                <span className="text-base">{meta.icon}</span>
+                {meta.logo ? (
+                  <img
+                    src={meta.logo}
+                    alt={meta.displayName}
+                    style={meta.logoStyle || { width: 20, height: 20, objectFit: "contain" }}
+                  />
+                ) : (
+                  <span className="text-base">{meta.icon}</span>
+                )}
                 <span className="font-semibold text-[16px] text-[#d1d4dc]">
                   {meta.displayName}
                 </span>
