@@ -49,7 +49,7 @@ export function Navigation({ onGetStarted }: NavigationProps) {
             <img
               src="/volnex.webp"
               alt="Volnex Logo"
-              className="h-10 object-contain"
+              className="h-8 object-contain"
             />
           </motion.div>
 

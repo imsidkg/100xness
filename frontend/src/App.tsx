@@ -7,11 +7,14 @@ import { toast } from "sonner";
 // ============================================================
 // MOCK DATA — Used when backend is offline
 // ============================================================
-const MOCK_PRICES: Record<string, { bid: number; ask: number; spread: number }> = {
+const MOCK_PRICES: Record<
+  string,
+  { bid: number; ask: number; spread: number }
+> = {
   BTCUSDT: { bid: 68533.32, ask: 68551.32, spread: 18 },
   ETHUSDT: { bid: 2016.04, ask: 2017.44, spread: 1.4 },
   SOLUSDT: { bid: 84.718, ask: 84.764, spread: 0.046 },
-  XAUUSD: { bid: 5181.400, ask: 5181.752, spread: 0.352 },
+  XAUUSD: { bid: 5181.4, ask: 5181.752, spread: 0.352 },
   USDJPY: { bid: 149.852, ask: 149.874, spread: 0.022 },
   EURUSD: { bid: 1.08432, ask: 1.08456, spread: 0.00024 },
   USOIL: { bid: 71.34, ask: 71.39, spread: 0.05 },
@@ -56,10 +59,7 @@ function generateMockCandles(symbol: string, interval: string, count = 120) {
   return candles;
 }
 
-function tickPrice(
-  current: number,
-  baseVolatility: number
-): number {
+function tickPrice(current: number, baseVolatility: number): number {
   const change = (Math.random() - 0.5) * baseVolatility;
   return parseFloat((current + change).toFixed(6));
 }
@@ -80,16 +80,24 @@ type Action =
   | { type: "SET_SYMBOL"; payload: string }
   | { type: "SET_INTERVAL"; payload: string }
   | {
-    type: "UPDATE_LAST_CANDLE";
-    payload: { tradePrice: number; tradeTime: number };
-  }
+      type: "UPDATE_LAST_CANDLE";
+      payload: { tradePrice: number; tradeTime: number };
+    }
   | {
-    type: "SET_BID_ASK";
-    payload: { symbol: string; bid: string; ask: string };
-  }
+      type: "SET_BID_ASK";
+      payload: { symbol: string; bid: string; ask: string };
+    }
   | { type: "UPDATE_CURRENT_PRICE"; payload: number };
 
-const symbolOptions = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSD" ,"USDJPY", "EURUSD", "USOIL"];
+const symbolOptions = [
+  "BTCUSDT",
+  "ETHUSDT",
+  "SOLUSDT",
+  "XAUUSD",
+  "USDJPY",
+  "EURUSD",
+  "USOIL",
+];
 
 const initialState: State = {
   candleData: [],
@@ -161,6 +169,17 @@ function reducer(state: State, action: Action): State {
         }
 
         const updatedCandle = { time: candleTime, open, high, low, close };
+        if (Math.abs(high - low) / low > 0.05) {
+          console.warn("HUGE CANDLE DETECTED (same time):", {
+            tradePrice,
+            tradeTime,
+            open,
+            high,
+            low,
+            close,
+            lastCandle,
+          });
+        }
         return {
           ...state,
           currentPrice: tradePrice,
@@ -192,7 +211,7 @@ function reducer(state: State, action: Action): State {
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
-    !!localStorage.getItem("token")
+    !!localStorage.getItem("token"),
   );
   const [userEmail, setUserEmail] = useState<string>("");
   type AccountSummary = {
@@ -203,11 +222,13 @@ function App() {
     totalUnrealizedPnl: number;
   };
   const [accountSummary, setAccountSummary] = useState<AccountSummary | null>(
-    null
+    null,
   );
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(true);
-  const mockPricesRef = useRef<Record<string, { bid: number; ask: number }>>({});
+  const mockPricesRef = useRef<Record<string, { bid: number; ask: number }>>(
+    {},
+  );
   const symbolRef = useRef(state.symbol);
 
   // Keep symbolRef in sync with current symbol
@@ -318,111 +339,9 @@ function App() {
     let wsConnected = false;
     let useMockData = false;
 
-    // Try fetching candle data from backend
-    fetch(`${API_ENDPOINTS.CANDLES(state.symbol)}?interval=${state.interval}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.data && data.data.length > 0) {
-          const transformedData = data.data
-            .map((item: any) => ({
-              time: new Date(item.bucket).getTime() / 1000,
-              open: parseFloat(item.open),
-              high: parseFloat(item.high),
-              low: parseFloat(item.low),
-              close: parseFloat(item.close),
-            }))
-            .filter(
-              (item: any) =>
-                !isNaN(item.time) &&
-                !isNaN(item.open) &&
-                !isNaN(item.high) &&
-                !isNaN(item.low) &&
-                !isNaN(item.close) &&
-                item.time > 0
-            )
-            .sort((a: any, b: any) => a.time - b.time);
-          dispatch({ type: "SET_CANDLES", payload: transformedData });
-          setIsBackendOnline(true);
-        } else {
-          throw new Error("No data");
-        }
-      })
-      .catch(() => {
-        // Backend offline → use mock candle data IMMEDIATELY
-        useMockData = true;
-        setIsBackendOnline(false);
-        const mockCandles = generateMockCandles(state.symbol, state.interval);
-        dispatch({ type: "SET_CANDLES", payload: mockCandles });
-        startMockTicker(); // Start prices immediately
-      });
-
-    // Try WebSocket connection for live prices
-    const ws = new WebSocket(WS_URL);
-    const wsTimeout = setTimeout(() => {
-      if (!wsConnected && !mockTickerStarted) {
-        startMockTicker();
-      }
-    }, 1500);
-
-    ws.onopen = () => {
-      wsConnected = true;
-      setIsBackendOnline(true);
-      clearTimeout(wsTimeout);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        let data = JSON.parse(event.data as string);
-        if (data.channel && data.data) {
-          if (data.channel === "bid_ask_updates") {
-            data = data.data;
-          } else {
-            return;
-          }
-        }
-        if (data.symbol && data.bid && data.ask) {
-          dispatch({
-            type: "SET_BID_ASK",
-            payload: {
-              symbol: data.symbol,
-              bid: parseFloat(data.bid).toFixed(2),
-              ask: parseFloat(data.ask).toFixed(2),
-            },
-          });
-          if (data.symbol.toLowerCase() === symbolRef.current.toLowerCase()) {
-            const midPrice =
-              (parseFloat(data.bid) + parseFloat(data.ask)) / 2;
-            dispatch({ type: "UPDATE_CURRENT_PRICE", payload: midPrice });
-          }
-        }
-        if (data.symbol && data.tradePrice && data.tradeTime) {
-          const incomingSymbol = data.symbol.toLowerCase();
-          const currentSymbol = symbolRef.current.toLowerCase();
-          if (incomingSymbol === currentSymbol) {
-            dispatch({
-              type: "UPDATE_LAST_CANDLE",
-              payload: {
-                tradePrice: parseFloat(data.tradePrice),
-                tradeTime: parseInt(data.tradeTime),
-              },
-            });
-          }
-        }
-      } catch { }
-    };
-
-    ws.onclose = () => {
-      if (!wsConnected && !useMockData) {
-        startMockTicker();
-      }
-    };
-    ws.onerror = () => {
-      if (!wsConnected) {
-        startMockTicker();
-      }
-    };
-
-    // ---- MOCK TICKER when backend is offline ----
+    // We store the WS instance in a ref so we can close it on unmount
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: any = null;
     let mockInterval: ReturnType<typeof setInterval> | null = null;
     let mockTickerStarted = false;
 
@@ -473,7 +392,10 @@ function App() {
       // Tick prices every 1.5 seconds
       mockInterval = setInterval(() => {
         for (const [sym, p] of Object.entries(MOCK_PRICES)) {
-          const current = mockPricesRef.current[sym] || { bid: p.bid, ask: p.ask };
+          const current = mockPricesRef.current[sym] || {
+            bid: p.bid,
+            ask: p.ask,
+          };
           const volatility = p.bid * 0.0001; // 0.01% per tick
           const newBid = tickPrice(current.bid, volatility);
           const newAsk = parseFloat((newBid + p.spread).toFixed(6));
@@ -503,12 +425,176 @@ function App() {
       }, 1500);
     }
 
+    // Try fetching candle data from backend
+    fetch(`${API_ENDPOINTS.CANDLES(state.symbol)}?interval=${state.interval}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.data && Array.isArray(data.data)) {
+          const transformedData = data.data
+            .map((item: any) => ({
+              time: new Date(item.bucket).getTime() / 1000,
+              open: parseFloat(item.open),
+              high: parseFloat(item.high),
+              low: parseFloat(item.low),
+              close: parseFloat(item.close),
+            }))
+            .filter(
+              (item: any) =>
+                !isNaN(item.time) &&
+                !isNaN(item.open) &&
+                !isNaN(item.high) &&
+                !isNaN(item.low) &&
+                !isNaN(item.close) &&
+                item.time > 0,
+            )
+            .sort((a: any, b: any) => a.time - b.time);
+          dispatch({ type: "SET_CANDLES", payload: transformedData });
+          setIsBackendOnline(true);
+        } else {
+          throw new Error("Invalid format");
+        }
+      })
+      .catch(() => {
+        // CRITICAL FIX: If WS is already connected, don't start mock ticker
+        if (wsConnected) return;
+
+        useMockData = true;
+        setIsBackendOnline(false);
+        const mockCandles = generateMockCandles(state.symbol, state.interval);
+        dispatch({ type: "SET_CANDLES", payload: mockCandles });
+        startMockTicker(); // Start prices immediately
+      });
+
+    // We define a robust WS connect function
+    const connectWS = () => {
+      ws = new WebSocket(WS_URL);
+
+      const wsTimeout = setTimeout(() => {
+        if (!wsConnected && !mockTickerStarted) {
+          startMockTicker();
+        }
+      }, 1500);
+
+      ws.onopen = () => {
+        wsConnected = true;
+        setIsBackendOnline(true);
+        clearTimeout(wsTimeout);
+
+        if (mockTickerStarted) {
+          if (mockInterval) clearInterval(mockInterval);
+          mockTickerStarted = false;
+          useMockData = false;
+          // Clear mock candles so they don't form a huge candle with real data
+          dispatch({ type: "SET_CANDLES", payload: [] });
+        }
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          let data = JSON.parse(event.data as string);
+          if (data.channel && data.data) {
+            if (data.channel === "bid_ask_updates") {
+              data = data.data;
+            } else {
+              return;
+            }
+          }
+          if (data.symbol && data.bid && data.ask) {
+            dispatch({
+              type: "SET_BID_ASK",
+              payload: {
+                symbol: data.symbol,
+                bid: parseFloat(data.bid).toFixed(2),
+                ask: parseFloat(data.ask).toFixed(2),
+              },
+            });
+            if (data.symbol.toLowerCase() === symbolRef.current.toLowerCase()) {
+              const midPrice =
+                (parseFloat(data.bid) + parseFloat(data.ask)) / 2;
+              dispatch({ type: "UPDATE_CURRENT_PRICE", payload: midPrice });
+            }
+          }
+          if (data.symbol && data.tradePrice && data.tradeTime) {
+            const incomingSymbol = data.symbol.toLowerCase();
+            const currentSymbol = symbolRef.current.toLowerCase();
+            if (incomingSymbol === currentSymbol) {
+              dispatch({
+                type: "UPDATE_LAST_CANDLE",
+                payload: {
+                  tradePrice: parseFloat(data.tradePrice),
+                  tradeTime: parseInt(data.tradeTime),
+                },
+              });
+            }
+          }
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        wsConnected = false;
+        clearTimeout(wsTimeout);
+        if (!useMockData && !mockTickerStarted) {
+          reconnectTimeout = setTimeout(connectWS, 3000); // Wait 3s and try reconnecting
+        }
+      };
+
+      ws.onerror = () => {
+        ws?.close(); // Force a close to trigger the reconnnect logic
+      };
+    };
+
+    connectWS();
+
+    // ---- MOCK TICKER when backend is offline ----
+    // This block was previously duplicated and is now removed.
+    // The original mockTickerStarted and mockInterval declarations are at the top.
+    // The startMockTicker function is also defined once at the top.
+
+    // ---- DEMO TICKER for non-crypto symbols ----
+    // Always tick non-crypto demo symbols so the InstrumentPanel updates
+    const DEMO_SYMBOLS = ["XAUUSD", "USDJPY", "EURUSD", "USOIL"];
+    for (const sym of DEMO_SYMBOLS) {
+      if (!mockPricesRef.current[sym]) {
+        const p = MOCK_PRICES[sym];
+        if (p) {
+          mockPricesRef.current[sym] = { bid: p.bid, ask: p.ask };
+          // We intentionally don't dispatch here immediately as we don't want to
+          // trigger too many paints on first load, the interval will take care of it
+        }
+      }
+    }
+
+    const demoInterval = setInterval(() => {
+      for (const sym of DEMO_SYMBOLS) {
+        const p = MOCK_PRICES[sym];
+        if (!p) continue;
+        const current = mockPricesRef.current[sym] || {
+          bid: p.bid,
+          ask: p.ask,
+        };
+        const volatility = p.bid * 0.00005; // 0.005% per tick for forex/commodities
+        const newBid = tickPrice(current.bid, volatility);
+        const newAsk = parseFloat((newBid + p.spread).toFixed(6));
+        mockPricesRef.current[sym] = { bid: newBid, ask: newAsk };
+
+        dispatch({
+          type: "SET_BID_ASK",
+          payload: {
+            symbol: sym,
+            bid: fmtPrice(newBid),
+            ask: fmtPrice(newAsk),
+          },
+        });
+      }
+    }, 2000);
+
     const summaryInterval = setInterval(fetchAccountSummary, 5000);
 
     return () => {
-      clearTimeout(wsTimeout);
-      ws.close();
+      if (ws) ws.close();
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (mockInterval) clearInterval(mockInterval);
+      clearInterval(demoInterval);
       clearInterval(summaryInterval);
     };
   }, [state.symbol, state.interval]);

@@ -214,7 +214,7 @@ const TradingDashboard = ({
           <img
             src="/volnex.webp"
             alt="Logo"
-            className="h-10 w-auto mx-3 shrink-0 object-contain"
+            className="h-7   w-auto mx-3 shrink-0 object-contain"
           />
 
           {/* Separator between logo and tabs */}
