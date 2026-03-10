@@ -70,13 +70,13 @@ export function HowItWorks({ onGetStarted }: HowItWorksProps) {
           className="text-center mb-16 space-y-4"
         >
           <div className="inline-block px-6 py-2 rounded-lg        bg-gradient-to-r  from-[#e9e9e9] to-[#747372] border border-[#f37328]/20">
-            <span className="text-sm text-gray-900 uppercase tracking-wider">How It Works</span>
+            <span className="text-base text-gray-900 uppercase tracking-wider">How It Works</span>
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl text-black max-w-4xl mx-auto font-bold">
             Start Trading in {' '}
             <span className="text-gray-600">3 Simple Steps</span>
           </h2>
-          <p className="text-lg md:text-xl text-black/60 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-black/60 max-w-2xl mx-auto">
             Get started with TradePro in less than 5 minutes. It's fast, secure, and incredibly easy.
           </p>
         </motion.div>
@@ -111,10 +111,10 @@ export function HowItWorks({ onGetStarted }: HowItWorksProps) {
 
                     {/* Content */}
                     <div className="space-y-3">
-                      <h3 className="text-xl text-black">
+                      <h3 className="text-2xl text-black">
                         {step.title}
                       </h3>
-                      <p className="text-black/60 leading-relaxed">
+                      <p className="text-lg text-black/60 leading-relaxed">
                         {step.description}
                       </p>
                     </div>
@@ -141,7 +141,7 @@ export function HowItWorks({ onGetStarted }: HowItWorksProps) {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-16"
         >
-          <p className="text-black/60 mb-4">Ready to get started?</p>
+          <p className="text-lg text-black/60 mb-4">Ready to get started?</p>
           <div onClick={onGetStarted}>
             <ButtonHero title='Create Your Free Account' size='medium'/>
           </div>

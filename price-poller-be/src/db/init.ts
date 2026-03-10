@@ -223,7 +223,7 @@ export async function initDB() {
 
   try {
     await pool.query(`
-    CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_hourly', '2000-01-01', NOW());
+    CALL refresh_continuous_aggregate('tickers_hourly', NULL, NULL);
   `);
   } catch (error) {
     console.error(
@@ -273,7 +273,7 @@ export async function initDB() {
 
   try {
     await pool.query(`
-      CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_1m', '2000-01-01', NOW());
+      CALL refresh_continuous_aggregate('tickers_1m', NULL, NULL);
     `);
   } catch (error) {
     console.error("Error refreshing continuous aggregate tickers_1m:", error);
@@ -320,7 +320,7 @@ export async function initDB() {
 
   try {
     await pool.query(`
-      CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_5m', '2000-01-01', NOW());
+      CALL refresh_continuous_aggregate('tickers_5m', NULL, NULL);
     `);
   } catch (error) {
     console.error("Error refreshing continuous aggregate tickers_5m:", error);
@@ -367,7 +367,7 @@ export async function initDB() {
 
   try {
     await pool.query(`
-      CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_10m', '2000-01-01', NOW());
+      CALL refresh_continuous_aggregate('tickers_10m', NULL, NULL);
     `);
   } catch (error) {
     console.error("Error refreshing continuous aggregate tickers_10m:", error);

@@ -3,7 +3,8 @@
 
 @custom-variant dark (&:is(.dark *));
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "aktiv-grotesk", sans-serif;
+  font-size: 14px;
   line-height: 1.5;
   font-weight: 400;
 
@@ -76,7 +77,7 @@ button {
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #ffffff;
 }
 button:focus,
 button:focus-visible {

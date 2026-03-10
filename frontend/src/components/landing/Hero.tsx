@@ -109,7 +109,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-9 py-1 rounded-full bg-white border border-black/20 text-xl mt-3"
           >
-            <span className="text-black/70 capitalize font-koho text-sm  ">
+            <span className="text-black/70 capitalize font-koho text-base  ">
               To start trading with us
             </span>
           </motion.div>
@@ -119,7 +119,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="bg-gradient-to-tr from-gray-50 via-gray-400 to-gray-800 text capitalize text-8xl  mx-auto leading-none font-extrabold text-center -tracking-[3px] bg-clip-text text-transparent
+            className="bg-gradient-to-tr from-gray-50 via-gray-400 to-gray-800 text capitalize text-9xl  mx-auto leading-none font-extrabold text-center -tracking-[3px] bg-clip-text text-transparent
 "
           >
             trade like pro
@@ -130,7 +130,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-black  capitalize text-4xl   max-w-[950px] font-normal mx-auto leading-none "
+            className="text-black  capitalize text-5xl   max-w-[950px] font-normal mx-auto leading-none "
           >
             Boost Profits Instantly With Smart trading system
           </motion.h2>
@@ -140,7 +140,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-lg text-[rgba(54,54,54,0.81)] capitalize max-w-2xl mx-auto leading-relaxed font-koho pt-2"
+            className="text-xl text-[rgba(54,54,54,0.81)] capitalize max-w-2xl mx-auto leading-relaxed font-koho pt-2"
           >
             Make confident trades with cutting-edge AI technology.
           </motion.p>

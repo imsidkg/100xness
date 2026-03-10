@@ -53,7 +53,7 @@ export function Navigation({ onGetStarted }: NavigationProps) {
               <a
                 key={link.name}
                 href={link.href}
-                className="px-4 py-2 text-black/60 text-sm capitalize relative group transition-all duration-200 hover:text-black rounded-full hover:bg-gray-50"
+                className="px-4 py-2 text-black/60 text-base capitalize relative group transition-all duration-200 hover:text-black rounded-full hover:bg-gray-50"
               >
                 {link.name}
               </a>
