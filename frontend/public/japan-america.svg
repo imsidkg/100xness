@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
+
+  <defs>
+
+    <!-- star symbol -->
+    <symbol id="star" viewBox="-1 -1 2 2">
+      <polygon fill="white"
+        points="0,-1 0.224,-0.309 0.951,-0.309
+                0.363,0.118 0.588,0.809
+                0,0.382 -0.588,0.809
+                -0.363,0.118 -0.951,-0.309
+                -0.224,-0.309"/>
+    </symbol>
+
+    <!-- clip circles -->
+    <clipPath id="clipUS">
+      <circle cx="45" cy="45" r="30"/>
+    </clipPath>
+
+    <clipPath id="clipJP">
+      <circle cx="75" cy="25" r="30"/>
+    </clipPath>
+
+  </defs>
+
+  <!-- US flag -->
+  <g clip-path="url(#clipUS)">
+
+    <!-- red base -->
+    <rect x="15" y="15" width="60" height="60" fill="#B22234"/>
+
+    <!-- stripes -->
+    <g fill="#FFFFFF">
+      <rect x="15" y="20" width="60" height="4"/>
+      <rect x="15" y="28" width="60" height="4"/>
+      <rect x="15" y="36" width="60" height="4"/>
+      <rect x="15" y="44" width="60" height="4"/>
+      <rect x="15" y="52" width="60" height="4"/>
+      <rect x="15" y="60" width="60" height="4"/>
+    </g>
+
+    <!-- canton -->
+    <rect x="15" y="15" width="30" height="25" fill="#3C3B6E"/>
+
+    <!-- stars -->
+    <g transform="translate(20,20) scale(2)">
+      <use href="#star" x="0" y="0"/>
+      <use href="#star" x="4" y="0"/>
+      <use href="#star" x="8" y="0"/>
+
+      <use href="#star" x="2" y="2"/>
+      <use href="#star" x="6" y="2"/>
+
+      <use href="#star" x="0" y="4"/>
+      <use href="#star" x="4" y="4"/>
+      <use href="#star" x="8" y="4"/>
+
+      <use href="#star" x="2" y="6"/>
+      <use href="#star" x="6" y="6"/>
+    </g>
+
+  </g>
+
+  <!-- US border -->
+  <circle cx="45" cy="45" r="30" fill="none" stroke="#ccc"/>
+
+  <!-- Japan flag overlapping -->
+  <g clip-path="url(#clipJP)">
+    <rect x="45" y="-5" width="60" height="60" fill="white"/>
+    <circle cx="75" cy="25" r="12" fill="#BC002D"/>
+  </g>
+
+  <!-- Japan border -->
+  <circle cx="75" cy="25" r="30" fill="none" stroke="#ccc"/>
+
+</svg>
