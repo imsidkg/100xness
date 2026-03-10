@@ -48,39 +48,74 @@ const SYMBOL_DISPLAY: Record<string, string> = {
   BTCUSDT: "BTC/USDT",
   ETHUSDT: "ETH/USDT",
   SOLUSDT: "SOL/USDT",
+  XAUUSD: "XAU/USD",
+  USDJPY: "USD/JPY",
+  EURUSD: "EUR/USD",
+  USOIL: "USOIL",
 };
 
 const SYMBOL_LOGO: Record<string, string> = {
   BTCUSDT: "/bitcoin-btc-logo.svg",
   ETHUSDT: "/ethereum-eth-logo.svg",
   SOLUSDT: "/solana-sol-logo.svg",
+  XAUUSD: "/gold-usd.svg",
+  USDJPY: "/japan-america.svg",
+  EURUSD: "/europe-america.svg",
+  USOIL: "/drop-svgrepo-com.svg",
 };
 
 // ETH logo is a tall diamond, needs contain + circle bg; BTC already has its own circle; SOL is wide
 const SYMBOL_LOGO_STYLE: Record<string, React.CSSProperties> = {
   BTCUSDT: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
     borderRadius: "50%",
     objectFit: "contain",
   },
   ETHUSDT: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
     objectFit: "contain",
     filter: "brightness(0) invert(1)",
   },
   SOLUSDT: {
-    width: 16,
-    height: 16,
+    width: 22,
+    height: 22,
     objectFit: "contain",
   },
+  XAUUSD: {
+    width: 40,
+    height: 32,
+    objectFit: "contain",
+  },
+  USDJPY: {
+    width: 40,
+    height: 28,
+    objectFit: "contain",
+  },
+  EURUSD: {
+    width: 40,
+    height: 28,
+    objectFit: "contain",
+  },
+  USOIL: {
+    width: 32,
+    height: 32,
+    objectFit: "contain",
+    filter: "brightness(0) invert(1)",
+  },
 };
+
+const CLICKABLE_SYMBOLS = new Set(["BTCUSDT", "ETHUSDT", "SOLUSDT"]);
 
 const SYMBOL_SHORT: Record<string, string> = {
   BTCUSDT: "BTC",
   ETHUSDT: "ETH",
   SOLUSDT: "SOL",
+  XAUUSD: "XAU/USD",
+  USDJPY: "USD/JPY",
+  EURUSD: "EUR/USD",
+  USOIL: "OIL",
 };
 
 const INTERVAL_OPTIONS = [
@@ -176,30 +211,47 @@ const TradingDashboard = ({
       <div className="flex items-center justify-between px-3 bg-[#141D23] border-b border-[#3F474C] shrink-0 min-h-[56px]">
         {/* Left: Logo + Instrument Tabs */}
         <div className="flex items-center gap-0 h-full">
-          <img src="/logo.svg" alt="Logo" className="h-8 w-8 mx-3 shrink-0" />
+          <img
+            src="/volnex.webp"
+            alt="Logo"
+            className="h-10 w-auto mx-3 shrink-0 object-contain"
+          />
+
+          {/* Separator between logo and tabs */}
+          <div className="w-px h-7 bg-[#3F474C] mx-2" />
+
           <div className="flex items-center h-full">
             {Object.keys(SYMBOL_DISPLAY).map((sym) => {
               const isActive = sym === symbol;
+              const isClickable = CLICKABLE_SYMBOLS.has(sym);
               return (
                 <div
                   key={sym}
-                  onClick={() => onSymbolChange(sym)}
-                  className={`relative flex items-center gap-2 px-5 py-2.5 cursor-pointer select-none transition-colors duration-200 ${
-                    isActive ? "text-[#e5e7eb]" : "text-[#6b7280] hover:text-[#9ca3af]"
+                  onClick={isClickable ? () => onSymbolChange(sym) : undefined}
+                  className={`relative flex items-center gap-2.5 px-5 py-2.5 select-none transition-colors duration-200 ${
+                    isClickable
+                      ? isActive
+                        ? "text-[#e5e7eb] cursor-pointer"
+                        : "text-[#6b7280] hover:text-[#9ca3af] cursor-pointer"
+                      : "text-[#6b7280] cursor-default"
                   }`}
                 >
                   <img
                     src={SYMBOL_LOGO[sym]}
                     alt={sym}
-                    style={SYMBOL_LOGO_STYLE[sym] || { width: 24, height: 24, objectFit: "contain" }}
+                    style={
+                      SYMBOL_LOGO_STYLE[sym] || {
+                        width: 24,
+                        height: 24,
+                        objectFit: "contain",
+                      }
+                    }
                   />
-                  <span className="text-[13.5px] font-medium whitespace-nowrap">
+                  <span className="text-[15px] font-medium whitespace-nowrap">
                     {SYMBOL_SHORT[sym]}
                   </span>
                   {isActive && (
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-[3px] bg-white rounded-t-sm"
-                    />
+                    <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white rounded-t-sm" />
                   )}
                 </div>
               );
@@ -207,27 +259,25 @@ const TradingDashboard = ({
           </div>
 
           {/* Add instrument "+" button */}
-          <div
-            className="flex items-center justify-center w-8 h-8 ml-1 cursor-pointer text-white/60 hover:text-white transition-colors"
-          >
-            <Plus size={18} />
+          <div className="flex items-center justify-center w-8 h-8 ml-1 cursor-pointer text-white/60 hover:text-white transition-colors">
+            <Plus size={20} />
           </div>
         </div>
 
         {/* Right: Account Info + Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-8">
           {/* Demo + Standard + Balance — vertically stacked */}
           <div className="flex flex-col items-end leading-tight">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#00c853] bg-[#00c853]/10 px-1.5 py-0.5 rounded select-none">
+              <span className="text-[12px] font-semibold text-[#00c853] bg-[#00c853]/10 px-1.5 py-0.5 rounded select-none">
                 Demo
               </span>
-              <span className="text-[12px] text-[#9ca3af] font-medium select-none">
+              <span className="text-[13px] text-[#9ca3af] font-medium select-none">
                 Standard
               </span>
             </div>
             <div className="flex items-center gap-1 cursor-pointer select-none hover:text-white transition-colors text-[#d1d4dc] mt-0.5">
-              <span className="text-[13px] font-semibold">
+              <span className="text-[15px] font-semibold">
                 {accountSummary?.balance
                   ? Number(accountSummary.balance).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
@@ -236,7 +286,7 @@ const TradingDashboard = ({
                   : "10,000.00"}{" "}
                 USD
               </span>
-              <ChevronDown size={12} className="text-[#6b7280]" />
+              <ChevronDown size={14} className="text-[#6b7280]" />
             </div>
           </div>
 
@@ -245,27 +295,27 @@ const TradingDashboard = ({
 
           {/* Bell with notification dot */}
           <div className="relative cursor-pointer text-white/70 hover:text-white transition-colors">
-            <Bell size={18} />
+            <Bell size={20} />
             <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full" />
           </div>
 
           {/* Settings gear */}
           <div className="cursor-pointer text-white/70 hover:text-white transition-colors">
-            <Settings size={18} />
+            <Settings size={20} />
           </div>
 
           {/* Grid / apps icon */}
           <div className="cursor-pointer text-white/70 hover:text-white transition-colors">
-            <LayoutGrid size={18} />
+            <LayoutGrid size={20} />
           </div>
 
           {/* User avatar + dropdown */}
           <div className="relative" ref={profileRef}>
             <div
-              className="w-8 h-8 rounded-full bg-[#2a3640] flex items-center justify-center cursor-pointer hover:bg-[#354450] transition-colors"
+              className="w-9 h-9 rounded-full bg-[#2a3640] flex items-center justify-center cursor-pointer hover:bg-[#354450] transition-colors"
               onClick={() => setProfileDropdownOpen((v) => !v)}
             >
-              <User size={16} className="text-white/70" />
+              <User size={18} className="text-white/70" />
             </div>
             {profileDropdownOpen && (
               <div
@@ -274,7 +324,9 @@ const TradingDashboard = ({
               >
                 {/* Email */}
                 <div className="px-4 py-2.5 border-b border-[#3F474C]">
-                  <p className="text-[11px] text-[#6b7280] font-medium">Signed in as</p>
+                  <p className="text-[11px] text-[#6b7280] font-medium">
+                    Signed in as
+                  </p>
                   <p className="text-[13px] text-[#d1d4dc] font-medium truncate mt-0.5">
                     {userEmail || "user@example.com"}
                   </p>
@@ -297,7 +349,7 @@ const TradingDashboard = ({
           {/* Deposit button */}
           <div
             onClick={() => setDepositModalOpen(true)}
-            className="px-4 py-1.5 bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] text-[13px] font-medium rounded transition-colors cursor-pointer select-none"
+            className="px-14 py-2 bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] text-[15px] font-medium rounded transition-colors cursor-pointer select-none"
           >
             Deposit
           </div>
@@ -381,6 +433,20 @@ const TradingDashboard = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <span className="text-[12px] text-[#787b86]">Net P&L:</span>
+              <span
+                className={`text-[12px] font-mono font-semibold ${
+                  (accountSummary?.totalUnrealizedPnl ?? 0) >= 0
+                    ? "text-[#26a69a]"
+                    : "text-[#ef5350]"
+                }`}
+              >
+                {(accountSummary?.totalUnrealizedPnl ?? 0) >= 0 ? "+" : ""}
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(accountSummary?.totalUnrealizedPnl || 0)}
+              </span>
             </div>
           </div>
 

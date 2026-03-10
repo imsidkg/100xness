@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
+
+<defs>
+
+<clipPath id="clipUS">
+<circle cx="40" cy="45" r="30"/>
+</clipPath>
+
+<clipPath id="clipEU">
+<circle cx="70" cy="25" r="30"/>
+</clipPath>
+
+</defs>
+
+<!-- US FLAG -->
+
+<g clip-path="url(#clipUS)">
+
+<rect x="10" y="10" width="60" height="60" fill="#B22234"/>
+
+<g fill="white">
+<rect x="10" y="16" width="60" height="4"/>
+<rect x="10" y="24" width="60" height="4"/>
+<rect x="10" y="32" width="60" height="4"/>
+<rect x="10" y="40" width="60" height="4"/>
+<rect x="10" y="48" width="60" height="4"/>
+<rect x="10" y="56" width="60" height="4"/>
+</g>
+
+<rect x="10" y="10" width="30" height="20" fill="#3C3B6E"/>
+
+</g>
+
+<circle cx="40" cy="45" r="30" fill="none" stroke="#ccc"/>
+
+<!-- EU FLAG -->
+
+<g clip-path="url(#clipEU)">
+
+<rect x="40" y="-5" width="60" height="60" fill="#003399"/>
+
+<!-- stars -->
+<g fill="#FFCC00">
+
+<circle cx="70" cy="5" r="2"/>
+<circle cx="78" cy="10" r="2"/>
+<circle cx="82" cy="18" r="2"/>
+<circle cx="78" cy="26" r="2"/>
+<circle cx="70" cy="30" r="2"/>
+<circle cx="62" cy="26" r="2"/>
+<circle cx="58" cy="18" r="2"/>
+<circle cx="62" cy="10" r="2"/>
+
+</g>
+
+</g>
+
+<circle cx="70" cy="25" r="30" fill="none" stroke="#ccc"/>
+
+</svg>

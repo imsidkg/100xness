@@ -5,6 +5,47 @@ import { toast } from "sonner";
 import { Briefcase } from "lucide-react";
 import type { TradeToEdit } from "../TradingDashboard";
 
+const SYMBOL_LOGO: Record<string, { src: string; style: React.CSSProperties }> = {
+  BTCUSDT: {
+    src: "/bitcoin-btc-logo.svg",
+    style: { width: 16, height: 16, borderRadius: "50%", objectFit: "contain" },
+  },
+  ETHUSDT: {
+    src: "/ethereum-eth-logo.svg",
+    style: { width: 16, height: 16, objectFit: "contain", filter: "brightness(0) invert(1)" },
+  },
+  SOLUSDT: {
+    src: "/solana-sol-logo.svg",
+    style: { width: 12, height: 12, objectFit: "contain" },
+  },
+  XAUUSD: {
+    src: "/gold-usd.svg",
+    style: { width: 20, height: 16, objectFit: "contain" },
+  },
+  USDJPY: {
+    src: "/japan-america.svg",
+    style: { width: 20, height: 14, objectFit: "contain" },
+  },
+  EURUSD: {
+    src: "/europe-america.svg",
+    style: { width: 20, height: 14, objectFit: "contain" },
+  },
+  USOIL: {
+    src: "/drop-svgrepo-com.svg",
+    style: { width: 14, height: 14, objectFit: "contain", filter: "brightness(0) invert(1)" },
+  },
+};
+
+const SYMBOL_SHORT: Record<string, string> = {
+  BTCUSDT: "BTC",
+  ETHUSDT: "ETH",
+  SOLUSDT: "SOL",
+  XAUUSD: "XAU/USD",
+  USDJPY: "USD/JPY",
+  EURUSD: "EUR/USD",
+  USOIL: "OIL",
+};
+
 interface Trade {
   order_id: string;
   type: "buy" | "sell";
@@ -262,30 +303,51 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
         ? pendingTrades.length > 0
         : closedTrades.length > 0;
 
+  // Compute total unrealized PnL from open trades
+  const totalUnrealizedPnl = openTrades.reduce(
+    (sum, t) => sum + (t.unrealized_pnl || 0),
+    0,
+  );
+
   return (
     <div className="flex flex-col h-full bg-[#141D23]">
       {/* Tab Selectors */}
-      <div className="flex flex-row items-stretch bg-[#141D23]">
-        {(["open", "pending", "closed"] as const).map((tab) => (
-          <div
-            key={tab}
-            className={`relative px-5 py-2.5 text-[13.5px] font-medium cursor-pointer select-none transition-colors duration-200 ${
-              activeTab === tab
-                ? "text-[#e5e7eb]"
-                : "text-[#6b7280] hover:text-[#9ca3af]"
+      <div className="flex flex-row items-stretch justify-between bg-[#141D23]">
+        <div className="flex items-stretch">
+          {(["open", "pending", "closed"] as const).map((tab) => (
+            <div
+              key={tab}
+              className={`relative px-5 py-2.5 text-[13.5px] font-medium cursor-pointer select-none transition-colors duration-200 ${
+                activeTab === tab
+                  ? "text-[#e5e7eb]"
+                  : "text-[#6b7280] hover:text-[#9ca3af]"
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {activeTab === tab && (
+                <motion.div
+                  layoutId="positions-tab-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-white rounded-t-sm"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Live PnL on right side */}
+        <div className="flex items-center pr-4 text-[12px]">
+          <span className="text-[#787b86] mr-1.5">P&L:</span>
+          <span
+            className={`font-mono font-semibold ${
+              totalUnrealizedPnl >= 0 ? "text-[#26a69a]" : "text-[#ef5350]"
             }`}
-            onClick={() => setActiveTab(tab)}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            {activeTab === tab && (
-              <motion.div
-                layoutId="positions-tab-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[3px] bg-white rounded-t-sm"
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              />
-            )}
-          </div>
-        ))}
+            {totalUnrealizedPnl >= 0 ? "+" : ""}
+            {fmtCurrency(totalUnrealizedPnl)}
+          </span>
+        </div>
       </div>
 
       {/* Content Area */}
@@ -371,12 +433,27 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                     }
                   >
                     <td className="px-3 py-2.5 text-[#d1d4dc] font-mono font-medium text-[14px]">
-                      {t.symbol}
+                      <div className="flex items-center gap-1.5">
+                        {SYMBOL_LOGO[t.symbol.toUpperCase()] ? (
+                          <img
+                            src={SYMBOL_LOGO[t.symbol.toUpperCase()].src}
+                            alt={t.symbol}
+                            style={SYMBOL_LOGO[t.symbol.toUpperCase()].style}
+                          />
+                        ) : null}
+                        <span>{SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}</span>
+                      </div>
                     </td>
                     <td
                       className={`px-3 py-2.5 font-mono text-[14px] ${t.type === "buy" ? "text-emerald-400" : "text-red-400"}`}
                     >
-                      {t.type.toUpperCase()}
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
+                          style={{ backgroundColor: t.type === "buy" ? "#26a69a" : "#ef5350" }}
+                        />
+                        {t.type.toUpperCase()}
+                      </div>
                     </td>
                     <td className="px-3 py-2.5 text-[#d1d4dc] font-mono text-[14px]">
                       {fmt(t.entry_price, 4)}
@@ -465,12 +542,27 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                     className="transition-colors border-b border-[#3F474C]/30 hover:bg-[#222E34]"
                   >
                     <td className="px-3 py-2.5 text-[#d1d4dc] font-mono font-medium text-[14px]">
-                      {t.symbol}
+                      <div className="flex items-center gap-1.5">
+                        {SYMBOL_LOGO[t.symbol.toUpperCase()] ? (
+                          <img
+                            src={SYMBOL_LOGO[t.symbol.toUpperCase()].src}
+                            alt={t.symbol}
+                            style={SYMBOL_LOGO[t.symbol.toUpperCase()].style}
+                          />
+                        ) : null}
+                        <span>{SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}</span>
+                      </div>
                     </td>
                     <td
                       className={`px-3 py-2.5 font-mono text-[14px] ${t.type === "buy" ? "text-emerald-400" : "text-red-400"}`}
                     >
-                      {t.type.toUpperCase()}
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
+                          style={{ backgroundColor: t.type === "buy" ? "#26a69a" : "#ef5350" }}
+                        />
+                        {t.type.toUpperCase()}
+                      </div>
                     </td>
                     <td className="px-3 py-2.5 text-[#d1d4dc] font-mono uppercase text-[14px]">
                       {t.order_type || "limit"}
@@ -556,12 +648,27 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                     className="transition-colors border-b border-[#3F474C]/30 hover:bg-[#222E34]"
                   >
                     <td className="px-3 py-2.5 text-[#d1d4dc] font-mono font-medium text-[14px]">
-                      {t.symbol}
+                      <div className="flex items-center gap-1.5">
+                        {SYMBOL_LOGO[t.symbol.toUpperCase()] ? (
+                          <img
+                            src={SYMBOL_LOGO[t.symbol.toUpperCase()].src}
+                            alt={t.symbol}
+                            style={SYMBOL_LOGO[t.symbol.toUpperCase()].style}
+                          />
+                        ) : null}
+                        <span>{SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}</span>
+                      </div>
                     </td>
                     <td
                       className={`px-3 py-2.5 font-mono text-[14px] ${t.type === "buy" ? "text-emerald-400" : "text-red-400"}`}
                     >
-                      {t.type.toUpperCase()}
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
+                          style={{ backgroundColor: t.type === "buy" ? "#26a69a" : "#ef5350" }}
+                        />
+                        {t.type.toUpperCase()}
+                      </div>
                     </td>
                     <td className="px-3 py-2.5 text-[#d1d4dc] font-mono text-[14px]">
                       {fmt(Number(t.entry_price), 4)}

@@ -31,7 +31,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
   const [stopLoss, setStopLoss] = useState<number | undefined>(undefined);
   const [limitPrice, setLimitPrice] = useState<number | undefined>(undefined);
   const [leverage, setLeverage] = useState<number>(1);
-  const [selectedSide, setSelectedSide] = useState<"buy" | "sell" | null>(null);
+  const [selectedSide, setSelectedSide] = useState<"buy" | "sell">("buy");
   const [editingLeverage, setEditingLeverage] = useState(false);
 
   // Modify form state
@@ -308,9 +308,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
             backgroundColor:
               selectedSide === "sell" ? "#ef4444" : "transparent",
           }}
-          onClick={() =>
-            setSelectedSide(selectedSide === "sell" ? null : "sell")
-          }
+          onClick={() => setSelectedSide("sell")}
         >
           <span className="text-[13px] font-semibold mb-1 uppercase tracking-wider">
             Sell
@@ -339,7 +337,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
           style={{
             backgroundColor: selectedSide === "buy" ? "#148BF9" : "transparent",
           }}
-          onClick={() => setSelectedSide(selectedSide === "buy" ? null : "buy")}
+          onClick={() => setSelectedSide("buy")}
         >
           <span className="text-[13px] font-semibold mb-1 uppercase tracking-wider">
             Buy
@@ -538,8 +536,8 @@ const TradePanel: React.FC<TradePanelProps> = ({
           </div>
         )}
 
-        {/* Order Summary — shown when side is selected */}
-        {selectedSide && (() => {
+        {/* Order Summary — always visible */}
+        {(() => {
           const price = selectedSide === "buy" ? askNum : bidNum;
           const notional = price * volume;
           const marginRequired = notional / (leverage || 1);
@@ -549,7 +547,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
 
           return (
             <div className="flex flex-col gap-0 mt-4">
-              {/* Confirm / Cancel buttons */}
+              {/* Confirm button */}
               <div className="flex flex-col gap-2">
                 <div
                   className="py-3 px-4 text-center text-white font-semibold text-[14px] cursor-pointer transition-colors rounded"
@@ -559,19 +557,9 @@ const TradePanel: React.FC<TradePanelProps> = ({
                   }}
                   onClick={() => {
                     handleTrade(selectedSide);
-                    setSelectedSide(null);
                   }}
                 >
                   Confirm {selectedSide === "buy" ? "Buy" : "Sell"} {volume.toFixed(2)} lots
-                </div>
-                <div
-                  className="py-2.5 px-4 text-center text-[#d1d4dc] font-semibold text-[14px] cursor-pointer transition-colors rounded hover:bg-[#1A2228]"
-                  style={{ backgroundColor: "#222E34" }}
-                  onClick={() => {
-                    setSelectedSide(null);
-                  }}
-                >
-                  Cancel
                 </div>
               </div>
 

@@ -25,12 +25,33 @@ const SYMBOL_META: Record<string, { displayName: string; icon: string; logo?: st
     logo: "/solana-sol-logo.svg",
     logoStyle: { width: 14, height: 14, objectFit: "contain" },
   },
-  xauusd: { displayName: "XAU/USD", icon: "🥇" },
-  xagusd: { displayName: "XAG/USD", icon: "🥈" },
-  eurusd: { displayName: "EUR/USD", icon: "€" },
-  usdjpy: { displayName: "USD/JPY", icon: "¥" },
-  usoil: { displayName: "USOIL", icon: "🛢" },
+  xauusd: {
+    displayName: "XAU/USD",
+    icon: "🥇",
+    logo: "/gold-usd.svg",
+    logoStyle: { width: 28, height: 22, objectFit: "contain" },
+  },
+  usdjpy: {
+    displayName: "USD/JPY",
+    icon: "¥",
+    logo: "/japan-america.svg",
+    logoStyle: { width: 24, height: 18, objectFit: "contain" },
+  },
+  eurusd: {
+    displayName: "EUR/USD",
+    icon: "€",
+    logo: "/europe-america.svg",
+    logoStyle: { width: 24, height: 18, objectFit: "contain" },
+  },
+  usoil: {
+    displayName: "OIL",
+    icon: "🛢",
+    logo: "/drop-svgrepo-com.svg",
+    logoStyle: { width: 18, height: 18, objectFit: "contain", filter: "brightness(0) invert(1)" },
+  },
 };
+
+const CLICKABLE_SYMBOLS = new Set(["btcusdt", "ethusdt", "solusdt"]);
 
 const GREEN = "#26a69a";
 const RED = "#ef5350";
@@ -103,16 +124,21 @@ const InstrumentPanel: React.FC<InstrumentPanelProps> = ({
             displayName: symbol.toUpperCase(),
             icon: "●",
           };
+          const isClickable = CLICKABLE_SYMBOLS.has(symbol.toLowerCase());
 
           return (
             <div
               key={symbol}
-              className={`grid grid-cols-[1fr_1fr_1fr] items-center px-3 py-2 cursor-pointer border-b border-[#3F474C]/30 ${
-                symbol.toLowerCase() === selectedSymbol.toLowerCase()
-                  ? "bg-[#1E2D38]"
-                  : "hover:bg-[#1A2730]"
+              className={`grid grid-cols-[1fr_1fr_1fr] items-center px-3 py-2 border-b border-[#3F474C]/30 ${
+                isClickable
+                  ? `cursor-pointer ${
+                      symbol.toLowerCase() === selectedSymbol.toLowerCase()
+                        ? "bg-[#1E2D38]"
+                        : "hover:bg-[#1A2730]"
+                    }`
+                  : "cursor-default"
               }`}
-              onClick={() => onSymbolSelect(symbol)}
+              onClick={isClickable ? () => onSymbolSelect(symbol) : undefined}
             >
               <div className="flex items-center gap-2">
                 {meta.logo ? (

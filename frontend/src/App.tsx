@@ -11,7 +11,19 @@ const MOCK_PRICES: Record<string, { bid: number; ask: number; spread: number }> 
   BTCUSDT: { bid: 68533.32, ask: 68551.32, spread: 18 },
   ETHUSDT: { bid: 2016.04, ask: 2017.44, spread: 1.4 },
   SOLUSDT: { bid: 84.718, ask: 84.764, spread: 0.046 },
+  XAUUSD: { bid: 5181.400, ask: 5181.752, spread: 0.352 },
+  USDJPY: { bid: 149.852, ask: 149.874, spread: 0.022 },
+  EURUSD: { bid: 1.08432, ask: 1.08456, spread: 0.00024 },
+  USOIL: { bid: 71.34, ask: 71.39, spread: 0.05 },
 };
+
+/** Format a price with appropriate decimal places based on magnitude */
+function fmtPrice(val: number): string {
+  if (val >= 10000) return val.toFixed(2);
+  if (val >= 100) return val.toFixed(3);
+  if (val >= 1) return val.toFixed(5);
+  return val.toFixed(6);
+}
 
 function generateMockCandles(symbol: string, interval: string, count = 120) {
   const base = MOCK_PRICES[symbol]?.bid || 68000;
@@ -77,7 +89,7 @@ type Action =
   }
   | { type: "UPDATE_CURRENT_PRICE"; payload: number };
 
-const symbolOptions = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+const symbolOptions = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSD" ,"USDJPY", "EURUSD", "USOIL"];
 
 const initialState: State = {
   candleData: [],
@@ -115,6 +127,10 @@ function reducer(state: State, action: Action): State {
       const { tradePrice, tradeTime } = action.payload;
       if (!tradePrice || !tradeTime || isNaN(tradePrice) || isNaN(tradeTime)) {
         return state;
+      }
+      // Don't update candles if we haven't loaded initial data yet
+      if (state.candleData.length === 0) {
+        return { ...state, currentPrice: tradePrice };
       }
 
       const intervalString = state.interval;
@@ -192,6 +208,12 @@ function App() {
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(true);
   const mockPricesRef = useRef<Record<string, { bid: number; ask: number }>>({});
+  const symbolRef = useRef(state.symbol);
+
+  // Keep symbolRef in sync with current symbol
+  useEffect(() => {
+    symbolRef.current = state.symbol;
+  }, [state.symbol]);
 
   const handleAuthSuccess = () => {
     setIsLoggedIn(true);
@@ -367,7 +389,7 @@ function App() {
               ask: parseFloat(data.ask).toFixed(2),
             },
           });
-          if (data.symbol.toLowerCase() === state.symbol.toLowerCase()) {
+          if (data.symbol.toLowerCase() === symbolRef.current.toLowerCase()) {
             const midPrice =
               (parseFloat(data.bid) + parseFloat(data.ask)) / 2;
             dispatch({ type: "UPDATE_CURRENT_PRICE", payload: midPrice });
@@ -375,7 +397,7 @@ function App() {
         }
         if (data.symbol && data.tradePrice && data.tradeTime) {
           const incomingSymbol = data.symbol.toLowerCase();
-          const currentSymbol = state.symbol.toLowerCase();
+          const currentSymbol = symbolRef.current.toLowerCase();
           if (incomingSymbol === currentSymbol) {
             dispatch({
               type: "UPDATE_LAST_CANDLE",
@@ -416,14 +438,14 @@ function App() {
           type: "SET_BID_ASK",
           payload: {
             symbol: sym,
-            bid: p.bid.toFixed(2),
-            ask: p.ask.toFixed(2),
+            bid: fmtPrice(p.bid),
+            ask: fmtPrice(p.ask),
           },
         });
       }
 
       // Set initial current price
-      const curr = MOCK_PRICES[state.symbol];
+      const curr = MOCK_PRICES[symbolRef.current];
       if (curr) {
         dispatch({
           type: "UPDATE_CURRENT_PRICE",
@@ -461,12 +483,12 @@ function App() {
             type: "SET_BID_ASK",
             payload: {
               symbol: sym,
-              bid: newBid.toFixed(2),
-              ask: newAsk.toFixed(2),
+              bid: fmtPrice(newBid),
+              ask: fmtPrice(newAsk),
             },
           });
 
-          if (sym.toLowerCase() === state.symbol.toLowerCase()) {
+          if (sym.toLowerCase() === symbolRef.current.toLowerCase()) {
             const mid = (newBid + newAsk) / 2;
             dispatch({ type: "UPDATE_CURRENT_PRICE", payload: mid });
             dispatch({

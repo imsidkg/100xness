@@ -144,9 +144,40 @@ export const ChartComponent: React.FC<ChartProps> = ({ data, colors = {} }) => {
     wickDownColor,
   ]);
 
+  const initialFitDone = useRef(false);
+
+  // Reset fit flag when chart is recreated
   useEffect(() => {
-    if (chartRef.current && data) {
-      chartRef.current.series.setData(data);
+    initialFitDone.current = false;
+  }, [
+    backgroundColor,
+    textColor,
+    upColor,
+    downColor,
+    borderUpColor,
+    borderDownColor,
+    wickUpColor,
+    wickDownColor,
+  ]);
+
+  useEffect(() => {
+    if (chartRef.current && data && data.length > 0) {
+      // Ensure data is sorted by time and deduplicated (lightweight-charts requires this)
+      const seen = new Set<number>();
+      const cleanData = data
+        .filter((d) => {
+          if (seen.has(d.time as number)) return false;
+          seen.add(d.time as number);
+          return true;
+        })
+        .sort((a, b) => (a.time as number) - (b.time as number));
+
+      chartRef.current.series.setData(cleanData);
+      // Fit content on the first meaningful data load
+      if (!initialFitDone.current) {
+        chartRef.current.chart.timeScale().fitContent();
+        initialFitDone.current = true;
+      }
     }
   }, [data]);
 
