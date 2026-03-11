@@ -69,37 +69,39 @@ export const tradeProcessor = async (
     symbol,
     quantity,
     margin: manualMargin,
-    stopLoss,
-    takeProfit,
   } = req.body as TradeRequest;
-
-  const lowerCaseSymbol = symbol.toLowerCase();
-  let entryPrice;
-  if (type == "buy") {
-    entryPrice = currentPrices.get(lowerCaseSymbol)?.ask;
-  } else {
-    entryPrice = currentPrices.get(lowerCaseSymbol)?.bid;
-  }
-  if (!entryPrice) {
-    return res
-      .status(400)
-      .json({ message: "Entry price is not set for this symbol." });
-  }
 
   const effectiveLeverage = leverage || 1;
 
-  // Let tradeService handle entryPrice resolution/margin calculation for pending orders
-  // However, we still need to validate balance here since we lock margin immediately.
+  // Determine which price to use for margin validation.
+  // - For market orders we require a live bid/ask price.
+  // - For pending (limit/stop) orders we use the provided limitPrice and
+  //   deliberately do NOT depend on the in‑memory currentPrices map so that
+  //   pending orders can be created even before the live price feed is warm.
   const orderType = req.body.orderType || "market";
-  let validationPrice = entryPrice;
+  let validationPrice: number;
 
-  if (orderType !== "market") {
-    if (!req.body.limitPrice) {
-      return res
-        .status(400)
-        .json({ message: "limitPrice is required for limit/stop orders." });
+  if (orderType === "market") {
+    const lowerCaseSymbol = symbol.toLowerCase();
+    const priceInfo = currentPrices.get(lowerCaseSymbol);
+    const entryPrice = type === "buy" ? priceInfo?.ask : priceInfo?.bid;
+
+    if (!entryPrice) {
+      return res.status(400).json({
+        message:
+          "Live price is not available for this symbol right now. Please try again in a few seconds or use a supported symbol.",
+      });
     }
-    validationPrice = req.body.limitPrice;
+
+    validationPrice = entryPrice;
+  } else {
+    const { limitPrice } = req.body as TradeRequest;
+    if (!limitPrice || typeof limitPrice !== "number" || limitPrice <= 0) {
+      return res.status(400).json({
+        message: "limitPrice is required for limit/stop orders.",
+      });
+    }
+    validationPrice = limitPrice;
   }
 
   const margin =

@@ -59,19 +59,27 @@ export const createTrade = async (
 
   const lowerCaseSymbol = symbol.toLowerCase();
 
-  let entryPrice;
+  let entryPrice: number;
 
   if (orderType === "market") {
-    if (type == "buy") {
-      entryPrice = currentPrices.get(lowerCaseSymbol)?.ask;
-    } else {
-      entryPrice = currentPrices.get(lowerCaseSymbol)?.bid;
-    }
+    const priceInfo = currentPrices.get(lowerCaseSymbol);
+    entryPrice = type === "buy" ? priceInfo?.ask ?? 0 : priceInfo?.bid ?? 0;
+
+    // Fallback: if the in‑memory price cache is empty (e.g. right after
+    // startup or if the price listener briefly disconnects), try to pull the
+    // latest price from Timescale instead of immediately failing.
     if (!entryPrice) {
-      throw new Error("Entry price is not set for this symbol");
+      const latest = await getLatestTradePrice(lowerCaseSymbol);
+      if (!latest) {
+        throw new Error(
+          "Entry price is not available for this symbol right now.",
+        );
+      }
+      entryPrice = latest;
     }
   } else {
-    // For limit/stop orders, entry price is 0 initially (or the limit price, but execution price will be determined later)
+    // For limit/stop orders we store the requested limit price; the actual
+    // execution price is set later when the order is filled.
     if (!limitPrice) {
       throw new Error("limitPrice is required for limit and stop orders");
     }
