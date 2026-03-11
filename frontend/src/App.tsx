@@ -280,6 +280,22 @@ function App() {
       toast.error("Please log in to place a trade.");
       return;
     }
+
+     // Debug log: see exactly what we are sending to the backend
+    const effectiveSymbol = data.symbol || state.symbol;
+    const body = {
+      type,
+      symbol: effectiveSymbol,
+      quantity: data.quantity || 0.001,
+      margin: data.margin,
+      leverage: data.leverage || 1,
+      stopLoss: data.stopLoss,
+      takeProfit: data.takeProfit,
+      orderType: data.orderType || "market",
+      limitPrice: data.limitPrice,
+    };
+    console.log("[App.handleTrade] Sending trade request", body);
+
     try {
       const response = await fetch(API_ENDPOINTS.TRADE, {
         method: "POST",
@@ -287,17 +303,7 @@ function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          type,
-          symbol: data.symbol || state.symbol,
-          quantity: data.quantity || 0.001,
-          margin: data.margin,
-          leverage: data.leverage || 1,
-          stopLoss: data.stopLoss,
-          takeProfit: data.takeProfit,
-          orderType: data.orderType || "market",
-          limitPrice: data.limitPrice,
-        }),
+        body: JSON.stringify(body),
       });
       if (response.ok) {
         setTradeError(null);

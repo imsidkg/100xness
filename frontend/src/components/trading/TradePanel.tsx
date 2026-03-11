@@ -61,7 +61,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
   };
 
   const handleTrade = (type: "buy" | "sell") => {
-    onTrade(type, {
+    const payload = {
       symbol,
       quantity: volume,
       leverage,
@@ -69,7 +69,17 @@ const TradePanel: React.FC<TradePanelProps> = ({
       limitPrice: orderTab === "pending" ? limitPrice : undefined,
       stopLoss,
       takeProfit,
+    };
+
+    // Debug log: what the user is actually trying to trade
+    console.log("[TradePanel] Submit trade", {
+      side: type,
+      symbol,
+      orderTab,
+      payload,
     });
+
+    onTrade(type, payload);
   };
 
   const handleSaveModify = () => {
