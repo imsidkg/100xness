@@ -65,11 +65,23 @@ export const createTrade = async (
     const priceInfo = currentPrices.get(lowerCaseSymbol);
     entryPrice = type === "buy" ? priceInfo?.ask ?? 0 : priceInfo?.bid ?? 0;
 
+    console.log("[createTrade] Resolving market entry price", {
+      userId,
+      symbol: lowerCaseSymbol,
+      type,
+      priceInfo,
+      chosenEntryPrice: entryPrice,
+    });
+
     // Fallback: if the in‑memory price cache is empty (e.g. right after
     // startup or if the price listener briefly disconnects), try to pull the
     // latest price from Timescale instead of immediately failing.
     if (!entryPrice) {
       const latest = await getLatestTradePrice(lowerCaseSymbol);
+      console.log("[createTrade] Fallback to DB latest price", {
+        symbol: lowerCaseSymbol,
+        latest,
+      });
       if (!latest) {
         throw new Error(
           "Entry price is not available for this symbol right now.",

@@ -63,13 +63,19 @@ export const tradeProcessor = async (
     return res.status(401).json({ message: "User not authenticated" });
   }
 
-  const {
+  const { type, leverage, symbol, quantity, margin: manualMargin } =
+    req.body as TradeRequest;
+
+  // Debug logging: see exactly what asset / params are being traded
+  console.log("[tradeProcessor] Incoming trade request", {
+    userId,
     type,
-    leverage,
     symbol,
     quantity,
-    margin: manualMargin,
-  } = req.body as TradeRequest;
+    leverage,
+    manualMargin,
+    orderType: req.body.orderType || "market",
+  });
 
   const effectiveLeverage = leverage || 1;
 
@@ -85,6 +91,14 @@ export const tradeProcessor = async (
     const lowerCaseSymbol = symbol.toLowerCase();
     const priceInfo = currentPrices.get(lowerCaseSymbol);
     const entryPrice = type === "buy" ? priceInfo?.ask : priceInfo?.bid;
+
+    console.log("[tradeProcessor] Market order price snapshot", {
+      symbol: lowerCaseSymbol,
+      type,
+      priceInfo,
+      chosenEntryPrice: entryPrice,
+      currentPriceKeys: Array.from(currentPrices.keys()),
+    });
 
     if (!entryPrice) {
       return res.status(400).json({
