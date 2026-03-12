@@ -5,36 +5,52 @@ import { toast } from "sonner";
 import { Briefcase } from "lucide-react";
 import type { TradeToEdit } from "../TradingDashboard";
 
-const SYMBOL_LOGO: Record<string, { src: string; style: React.CSSProperties }> = {
-  BTCUSDT: {
-    src: "/bitcoin-btc-logo.svg",
-    style: { width: 16, height: 16, borderRadius: "50%", objectFit: "contain" },
-  },
-  ETHUSDT: {
-    src: "/ethereum-eth-logo.svg",
-    style: { width: 16, height: 16, objectFit: "contain", filter: "brightness(0) invert(1)" },
-  },
-  SOLUSDT: {
-    src: "/solana-sol-logo.svg",
-    style: { width: 12, height: 12, objectFit: "contain" },
-  },
-  XAUUSD: {
-    src: "/gold-usd.svg",
-    style: { width: 20, height: 16, objectFit: "contain" },
-  },
-  USDJPY: {
-    src: "/japan-america.svg",
-    style: { width: 20, height: 14, objectFit: "contain" },
-  },
-  EURUSD: {
-    src: "/europe-america.svg",
-    style: { width: 20, height: 14, objectFit: "contain" },
-  },
-  USOIL: {
-    src: "/drop-svgrepo-com.svg",
-    style: { width: 14, height: 14, objectFit: "contain", filter: "brightness(0) invert(1)" },
-  },
-};
+const SYMBOL_LOGO: Record<string, { src: string; style: React.CSSProperties }> =
+  {
+    BTCUSDT: {
+      src: "/bitcoin-btc-logo.svg",
+      style: {
+        width: 16,
+        height: 16,
+        borderRadius: "50%",
+        objectFit: "contain",
+      },
+    },
+    ETHUSDT: {
+      src: "/ethereum-eth-logo.svg",
+      style: {
+        width: 16,
+        height: 16,
+        objectFit: "contain",
+        filter: "brightness(0) invert(1)",
+      },
+    },
+    SOLUSDT: {
+      src: "/solana-sol-logo.svg",
+      style: { width: 12, height: 12, objectFit: "contain" },
+    },
+    XAUUSD: {
+      src: "/gold-usd.svg",
+      style: { width: 20, height: 16, objectFit: "contain" },
+    },
+    USDJPY: {
+      src: "/japan-america.svg",
+      style: { width: 20, height: 14, objectFit: "contain" },
+    },
+    EURUSD: {
+      src: "/europe-america.svg",
+      style: { width: 20, height: 14, objectFit: "contain" },
+    },
+    USOIL: {
+      src: "/drop-svgrepo-com.svg",
+      style: {
+        width: 14,
+        height: 14,
+        objectFit: "contain",
+        filter: "brightness(0) invert(1)",
+      },
+    },
+  };
 
 const SYMBOL_SHORT: Record<string, string> = {
   BTCUSDT: "BTC",
@@ -107,7 +123,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
           quantity: Number(trade.quantity),
           leverage: Number(trade.leverage),
           stop_loss: trade.stop_loss ? Number(trade.stop_loss) : undefined,
-          take_profit: trade.take_profit ? Number(trade.take_profit) : undefined,
+          take_profit: trade.take_profit
+            ? Number(trade.take_profit)
+            : undefined,
           commission: trade.commission ? Number(trade.commission) : 0,
           swap: trade.swap ? Number(trade.swap) : 0,
           unrealized_pnl: 0,
@@ -151,12 +169,16 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
         const trades = (data.trades || []).map((trade: any) => ({
           ...trade,
           entry_price: Number(trade.entry_price) || 0,
-          limit_price: trade.limit_price ? Number(trade.limit_price) : undefined,
+          limit_price: trade.limit_price
+            ? Number(trade.limit_price)
+            : undefined,
           margin: Number(trade.margin),
           quantity: Number(trade.quantity),
           leverage: Number(trade.leverage),
           stop_loss: trade.stop_loss ? Number(trade.stop_loss) : undefined,
-          take_profit: trade.take_profit ? Number(trade.take_profit) : undefined,
+          take_profit: trade.take_profit
+            ? Number(trade.take_profit)
+            : undefined,
           commission: trade.commission ? Number(trade.commission) : 0,
         }));
         setPendingTrades(trades);
@@ -441,7 +463,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                             style={SYMBOL_LOGO[t.symbol.toUpperCase()].style}
                           />
                         ) : null}
-                        <span>{SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}</span>
+                        <span>
+                          {SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}
+                        </span>
                       </div>
                     </td>
                     <td
@@ -450,7 +474,10 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                       <div className="flex items-center gap-1.5">
                         <span
                           className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
-                          style={{ backgroundColor: t.type === "buy" ? "#26a69a" : "#ef5350" }}
+                          style={{
+                            backgroundColor:
+                              t.type === "buy" ? "#26a69a" : "#ef5350",
+                          }}
                         />
                         {t.type.toUpperCase()}
                       </div>
@@ -550,7 +577,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                             style={SYMBOL_LOGO[t.symbol.toUpperCase()].style}
                           />
                         ) : null}
-                        <span>{SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}</span>
+                        <span>
+                          {SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}
+                        </span>
                       </div>
                     </td>
                     <td
@@ -559,7 +588,10 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                       <div className="flex items-center gap-1.5">
                         <span
                           className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
-                          style={{ backgroundColor: t.type === "buy" ? "#26a69a" : "#ef5350" }}
+                          style={{
+                            backgroundColor:
+                              t.type === "buy" ? "#26a69a" : "#ef5350",
+                          }}
                         />
                         {t.type.toUpperCase()}
                       </div>
@@ -568,7 +600,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                       {t.order_type || "limit"}
                     </td>
                     <td className="px-3 py-2.5 text-yellow-400 font-mono font-medium text-[14px]">
-                      {t.limit_price ? fmt(t.limit_price, 4) : fmt(t.entry_price, 4)}
+                      {t.limit_price
+                        ? fmt(t.limit_price, 4)
+                        : fmt(t.entry_price, 4)}
                     </td>
                     <td className="px-3 py-2.5 text-[#d1d4dc] font-mono text-[14px]">
                       {fmt(t.quantity, 6)}
@@ -656,7 +690,9 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                             style={SYMBOL_LOGO[t.symbol.toUpperCase()].style}
                           />
                         ) : null}
-                        <span>{SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}</span>
+                        <span>
+                          {SYMBOL_SHORT[t.symbol.toUpperCase()] || t.symbol}
+                        </span>
                       </div>
                     </td>
                     <td
@@ -665,7 +701,10 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
                       <div className="flex items-center gap-1.5">
                         <span
                           className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
-                          style={{ backgroundColor: t.type === "buy" ? "#26a69a" : "#ef5350" }}
+                          style={{
+                            backgroundColor:
+                              t.type === "buy" ? "#26a69a" : "#ef5350",
+                          }}
                         />
                         {t.type.toUpperCase()}
                       </div>
@@ -715,7 +754,7 @@ const PositionsPanel: React.FC<PositionsPanelProps> = ({
       </div>
 
       {/* Account Summary Footer */}
-      <div className="flex items-center justify-evenly px-3 py-1.5 bg-[#141D23] border-t border-[#3F474C] text-[11px] shrink-0 flex-nowrap whitespace-nowrap sticky bottom-0 z-20">
+      <div className="flex items-center justify-evenly px-3 py-2.5 bg-[#141D23] border-t border-[#3F474C] text-[14px] shrink-0 flex-nowrap whitespace-nowrap sticky bottom-0 z-20">
         <div className="flex items-center gap-1">
           <span className="text-[#787b86]">Equity:</span>
           <span className="text-[#d1d4dc] font-mono font-semibold">
