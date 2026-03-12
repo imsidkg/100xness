@@ -79,7 +79,14 @@ const TradePanel: React.FC<TradePanelProps> = ({
       payload,
     });
 
-    onTrade(type, payload);
+    onTrade(type, payload).then(() => {
+      // Clear inputs if trade was submitted successfully
+      if (!tradeError) {
+        setTakeProfit(undefined);
+        setStopLoss(undefined);
+        setLimitPrice(undefined);
+      }
+    });
   };
 
   const handleSaveModify = () => {
@@ -307,9 +314,9 @@ const TradePanel: React.FC<TradePanelProps> = ({
       </div>
 
       {/* Sell / Buy Selectors */}
-      <div className="flex items-center gap-2 px-4 mt-4">
+      <div className="flex justify-between items-stretch gap-1 px-1.5 md:px-2.5 mt-4">
         <div
-          className={`flex-1 flex flex-col items-center justify-center p-3 rounded border border-red-500 transition-colors cursor-pointer ${
+          className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded border border-red-500 transition-colors cursor-pointer ${
             selectedSide === "sell"
               ? "text-white"
               : "text-red-500 hover:bg-red-500/10"
@@ -320,26 +327,30 @@ const TradePanel: React.FC<TradePanelProps> = ({
           }}
           onClick={() => setSelectedSide("sell")}
         >
-          <span className="text-[13px] font-semibold mb-1 uppercase tracking-wider">
+          <span className="text-[10px] xl:text-[11px] font-bold mb-0.5 uppercase tracking-wider">
             Sell
           </span>
           <span className="font-mono flex items-baseline">
-            <span className="text-lg">{bidFormatted.intPart}.</span>
-            <span className="text-2xl font-bold">{bidFormatted.mainDec}</span>
-            <sup className="text-sm -top-2 relative">
+            <span className="text-sm xl:text-base">
+              {bidFormatted.intPart}.
+            </span>
+            <span className="text-base xl:text-lg font-bold">
+              {bidFormatted.mainDec}
+            </span>
+            <sup className="text-[10px] xl:text-xs -top-1.5 relative">
               {bidFormatted.lastDigit}
             </sup>
           </span>
         </div>
 
-        <div className="flex flex-col items-center justify-center px-1">
-          <span className="text-[10px] text-[#787b86] rounded bg-[#141D23] border border-[#3F474C] px-1.5 py-0.5 font-mono whitespace-nowrap">
+        <div className="flex flex-col items-center justify-center shrink-0">
+          <span className="text-[9px] text-[#787b86] rounded bg-[#141D23] border border-[#3F474C] px-1 py-0.5 font-mono whitespace-nowrap">
             {spread} USD
           </span>
         </div>
 
         <div
-          className={`flex-1 flex flex-col items-center justify-center p-3 rounded border border-[#148BF9] transition-colors cursor-pointer ${
+          className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded border border-[#148BF9] transition-colors cursor-pointer ${
             selectedSide === "buy"
               ? "text-white"
               : "text-[#148BF9] hover:bg-[#148BF9]/10"
@@ -349,13 +360,17 @@ const TradePanel: React.FC<TradePanelProps> = ({
           }}
           onClick={() => setSelectedSide("buy")}
         >
-          <span className="text-[13px] font-semibold mb-1 uppercase tracking-wider">
+          <span className="text-[10px] xl:text-[11px] font-bold mb-0.5 uppercase tracking-wider">
             Buy
           </span>
           <span className="font-mono flex items-baseline">
-            <span className="text-lg">{askFormatted.intPart}.</span>
-            <span className="text-2xl font-bold">{askFormatted.mainDec}</span>
-            <sup className="text-sm -top-2 relative">
+            <span className="text-sm xl:text-base">
+              {askFormatted.intPart}.
+            </span>
+            <span className="text-base xl:text-lg font-bold">
+              {askFormatted.mainDec}
+            </span>
+            <sup className="text-[10px] xl:text-xs -top-1.5 relative">
               {askFormatted.lastDigit}
             </sup>
           </span>
@@ -569,7 +584,8 @@ const TradePanel: React.FC<TradePanelProps> = ({
                     handleTrade(selectedSide);
                   }}
                 >
-                  Confirm {selectedSide === "buy" ? "Buy" : "Sell"} {volume.toFixed(2)} lots
+                  Confirm {selectedSide === "buy" ? "Buy" : "Sell"}{" "}
+                  {volume.toFixed(2)} lots
                 </div>
               </div>
 
@@ -596,7 +612,9 @@ const TradePanel: React.FC<TradePanelProps> = ({
                         className="w-16 bg-[#141D23] border border-[#3F474C] rounded px-2 py-0.5 text-[13px] text-[#d1d4dc] font-mono outline-none text-right"
                         value={leverage}
                         onChange={(e) =>
-                          setLeverage(Math.max(1, parseInt(e.target.value) || 1))
+                          setLeverage(
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
                         }
                         onBlur={() => setEditingLeverage(false)}
                         onKeyDown={(e) => {

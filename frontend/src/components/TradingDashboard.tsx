@@ -367,7 +367,7 @@ const TradingDashboard = ({
       <PanelGroup direction="horizontal">
         {/* ============== LEFT PANEL — INSTRUMENTS ============== */}
         <Panel
-          defaultSize={20}
+          defaultSize={18}
           minSize={15}
           maxSize={30}
           className="flex flex-col bg-[#141D23] overflow-hidden"
@@ -551,9 +551,9 @@ const TradingDashboard = ({
 
         {/* ============== RIGHT PANEL — TRADING ============== */}
         <Panel
-          defaultSize={20}
-          minSize={15}
-          maxSize={30}
+          defaultSize={22}
+          minSize={20}
+          maxSize={35}
           className="flex flex-col bg-[#141D23] overflow-hidden"
         >
           <TradePanel
