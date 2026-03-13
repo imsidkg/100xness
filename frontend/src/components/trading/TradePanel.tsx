@@ -224,7 +224,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
               </label>
               <CircleHelp size={14} className="text-[#4a4e5a]" />
             </div>
-            <div className="flex items-center bg-[#141D23] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+            <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
               <input
                 type="text"
                 className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
@@ -236,8 +236,12 @@ const TradePanel: React.FC<TradePanelProps> = ({
                   )
                 }
               />
+              <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+                Price
+              </span>
               <button
                 className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
+                style={{ backgroundColor: "transparent" }}
                 onClick={() =>
                   setEditTp((prev: number | undefined) =>
                     prev ? prev - 1 : askNum + 10,
@@ -248,6 +252,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
               </button>
               <button
                 className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
+                style={{ backgroundColor: "transparent" }}
                 onClick={() =>
                   setEditTp((prev: number | undefined) =>
                     prev ? prev + 1 : askNum + 10,
@@ -266,7 +271,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
               </label>
               <CircleHelp size={14} className="text-[#4a4e5a]" />
             </div>
-            <div className="flex items-center bg-[#141D23] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+            <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
               <input
                 type="text"
                 className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
@@ -278,8 +283,12 @@ const TradePanel: React.FC<TradePanelProps> = ({
                   )
                 }
               />
+              <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+                Price
+              </span>
               <button
                 className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
+                style={{ backgroundColor: "transparent" }}
                 onClick={() =>
                   setEditSl((prev: number | undefined) =>
                     prev ? prev - 1 : bidNum - 10,
@@ -290,6 +299,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
               </button>
               <button
                 className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
+                style={{ backgroundColor: "transparent" }}
                 onClick={() =>
                   setEditSl((prev: number | undefined) =>
                     prev ? prev + 1 : bidNum - 10,
@@ -305,13 +315,13 @@ const TradePanel: React.FC<TradePanelProps> = ({
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2 p-4 pt-2">
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded transition-colors text-[14px]"
+            className="bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] font-semibold py-2.5 px-4 rounded transition-colors text-[14px]"
             onClick={handleSaveModify}
           >
             Save Changes
           </button>
           <button
-            className="bg-[#2c3044] hover:bg-[#ffffff] text-[#d1d4dc] font-semibold py-2.5 px-4 rounded transition-colors text-[14px]"
+            className="bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] font-semibold py-2.5 px-4 rounded transition-colors text-[14px]"
             onClick={onCancelEdit}
           >
             Cancel
