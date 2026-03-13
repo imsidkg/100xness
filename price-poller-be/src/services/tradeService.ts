@@ -20,6 +20,8 @@ export const startPriceListener = () => {
         "Failed to subscribe to Redis channel for trading service",
         error,
       );
+    } else {
+      console.log("Price listener subscribed to Redis channel successfully");
     }
   });
 
@@ -31,7 +33,6 @@ export const startPriceListener = () => {
         const askPrice = parsedMessage.ask;
         const bidPrice = parsedMessage.bid;
         if (symbol && askPrice !== undefined) {
-          console.log(`Updating price for ${symbol}: ${askPrice}`);
           currentPrices.set(symbol, { ask: askPrice, bid: bidPrice });
         }
       } catch (error) {
@@ -63,7 +64,7 @@ export const createTrade = async (
 
   if (orderType === "market") {
     const priceInfo = currentPrices.get(lowerCaseSymbol);
-    entryPrice = type === "buy" ? priceInfo?.ask ?? 0 : priceInfo?.bid ?? 0;
+    entryPrice = type === "buy" ? (priceInfo?.ask ?? 0) : (priceInfo?.bid ?? 0);
 
     console.log("[createTrade] Resolving market entry price", {
       userId,

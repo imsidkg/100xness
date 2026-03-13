@@ -6,6 +6,8 @@ import {
   getUserOpenTrades,
   validateBalanceForTrade,
   currentPrices,
+  cancelPendingOrder,
+  getPendingOrders,
 } from "../services/tradeService";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { redis } from "../lib/redisClient";
@@ -63,8 +65,13 @@ export const tradeProcessor = async (
     return res.status(401).json({ message: "User not authenticated" });
   }
 
-  const { type, leverage, symbol, quantity, margin: manualMargin } =
-    req.body as TradeRequest;
+  const {
+    type,
+    leverage,
+    symbol,
+    quantity,
+    margin: manualMargin,
+  } = req.body as TradeRequest;
 
   // Debug logging: see exactly what asset / params are being traded
   console.log("[tradeProcessor] Incoming trade request", {
@@ -230,7 +237,6 @@ export const cancelOrder = async (req: AuthenticatedRequest, res: Response) => {
   try {
     // Note: To be safe, we should ideally verify the order belongs to the requesting user in the service layer,
     // but for simplicity here we just call the service.
-    const { cancelPendingOrder } = await import("../services/tradeService.js");
     const cancelledTrade = await cancelPendingOrder(orderId);
     res.status(200).json({
       message: "Pending order cancelled successfully",
@@ -252,7 +258,6 @@ export const getPendingOrdersForUser = async (
   }
 
   try {
-    const { getPendingOrders } = await import("../services/tradeService.js");
     const pendingOrders = await getPendingOrders(userId);
 
     res.status(200).json({ trades: pendingOrders });

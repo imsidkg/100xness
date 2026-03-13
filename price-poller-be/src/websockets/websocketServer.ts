@@ -32,20 +32,17 @@ export const startWebSocketServer = () => {
         return console.error("Failed to subscribe to Redis channels:", err);
       }
       console.log(`Subsc ribed to ${count} channel(s).`);
-    }
+    },
   );
 
   subscriber.on("message", (channel, message) => {
     try {
-      console.log(`Received message on channel ${channel}:`, message);
       // Parse the message from Redis
       const parsedMessage = JSON.parse(message);
 
       // For bid/ask updates, send the raw data structure that frontend expects
       if (channel === BID_ASK_CHANNEL) {
-        console.log("Processing bid/ask update:", parsedMessage);
         const outgoingPayload = JSON.stringify(parsedMessage);
-        console.log(`Sending to ${wss.clients.size} clients:`, outgoingPayload);
         wss.clients.forEach((client) => {
           if (client.readyState === client.OPEN) {
             client.send(outgoingPayload);
@@ -68,7 +65,7 @@ export const startWebSocketServer = () => {
     } catch (error) {
       console.error(
         `Error parsing or sending message on channel ${channel}:`,
-        error
+        error,
       );
     }
   });
