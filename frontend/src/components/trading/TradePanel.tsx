@@ -26,7 +26,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
   accountSummary: _accountSummary,
 }) => {
   const [orderTab, setOrderTab] = useState<"market" | "pending">("market");
-  const [volume, setVolume] = useState(0.01);
+  const [volumeStr, setVolumeStr] = useState("0.1");
   const [takeProfit, setTakeProfit] = useState<number | undefined>(undefined);
   const [stopLoss, setStopLoss] = useState<number | undefined>(undefined);
   const [limitPrice, setLimitPrice] = useState<number | undefined>(undefined);
@@ -54,16 +54,38 @@ const TradePanel: React.FC<TradePanelProps> = ({
   }, [bidNum, askNum]);
 
   const handleVolumeStep = (delta: number) => {
-    setVolume((prev: number) => {
-      const next = Math.round((prev + delta) * 100) / 100;
-      return Math.max(0.01, next);
+    setVolumeStr((prev: string) => {
+      const current = parseFloat(prev) || 0.1;
+      const next = Math.round((current + delta) * 10) / 10;
+      return Math.max(0.1, next).toString();
     });
   };
 
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val === "" || /^\d*\.?\d{0,1}$/.test(val)) {
+      setVolumeStr(val);
+    }
+  };
+
+  const handleVolumeBlur = () => {
+    const val = parseFloat(volumeStr);
+    if (isNaN(val) || val < 0.1) {
+      setVolumeStr("0.1");
+    } else {
+      setVolumeStr(val.toString());
+    }
+  };
+
+  const volume = parseFloat(volumeStr) || 0;
+
   const handleTrade = (type: "buy" | "sell") => {
+    const finalVolume = parseFloat(volumeStr);
+    const validVolume =
+      isNaN(finalVolume) || finalVolume < 0.1 ? 0.1 : finalVolume;
     const payload = {
       symbol,
-      quantity: volume,
+      quantity: validVolume,
       leverage,
       orderType: orderTab === "market" ? "market" : "limit",
       limitPrice: orderTab === "pending" ? limitPrice : undefined,
@@ -85,6 +107,8 @@ const TradePanel: React.FC<TradePanelProps> = ({
         setTakeProfit(undefined);
         setStopLoss(undefined);
         setLimitPrice(undefined);
+        setVolumeStr("0.1");
+        setOrderTab("market");
       }
     });
   };
@@ -429,14 +453,11 @@ const TradePanel: React.FC<TradePanelProps> = ({
           </label>
           <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
             <input
-              type="number"
+              type="text"
               className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] font-mono"
-              value={volume}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setVolume(parseFloat(e.target.value) || 0.01)
-              }
-              step="0.01"
-              min="0.01"
+              value={volumeStr}
+              onChange={handleVolumeChange}
+              onBlur={handleVolumeBlur}
             />
             <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
               Lots
@@ -444,14 +465,14 @@ const TradePanel: React.FC<TradePanelProps> = ({
             <button
               className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
               style={{ backgroundColor: "transparent" }}
-              onClick={() => handleVolumeStep(-0.01)}
+              onClick={() => handleVolumeStep(-0.1)}
             >
               −
             </button>
             <button
               className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
               style={{ backgroundColor: "transparent" }}
-              onClick={() => handleVolumeStep(0.01)}
+              onClick={() => handleVolumeStep(0.1)}
             >
               +
             </button>
