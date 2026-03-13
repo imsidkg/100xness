@@ -314,18 +314,18 @@ const TradePanel: React.FC<TradePanelProps> = ({
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2 p-4 pt-2">
-          <button
-            className="bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] font-semibold py-2.5 px-4 rounded transition-colors text-[14px]"
+          <div
+            className="flex items-center justify-center bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] text-[15px] font-medium py-2.5 px-4 rounded transition-colors cursor-pointer select-none"
             onClick={handleSaveModify}
           >
             Save Changes
-          </button>
-          <button
-            className="bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] font-semibold py-2.5 px-4 rounded transition-colors text-[14px]"
+          </div>
+          <div
+            className="flex items-center justify-center bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] text-[15px] font-medium py-2.5 px-4 rounded transition-colors cursor-pointer select-none"
             onClick={onCancelEdit}
           >
             Cancel
-          </button>
+          </div>
         </div>
 
         {/* Footer */}
