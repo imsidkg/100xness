@@ -55,23 +55,23 @@ const TradePanel: React.FC<TradePanelProps> = ({
 
   const handleVolumeStep = (delta: number) => {
     setVolumeStr((prev: string) => {
-      const current = parseFloat(prev) || 0.1;
-      const next = Math.round((current + delta) * 10) / 10;
-      return Math.max(0.1, next).toString();
+      const current = parseFloat(prev) || 0.001;
+      const next = Math.round((current + delta) * 1000) / 1000;
+      return Math.max(0.001, next).toString();
     });
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (val === "" || /^\d*\.?\d{0,1}$/.test(val)) {
+    if (val === "" || /^\d*\.?\d{0,3}$/.test(val)) {
       setVolumeStr(val);
     }
   };
 
   const handleVolumeBlur = () => {
     const val = parseFloat(volumeStr);
-    if (isNaN(val) || val < 0.1) {
-      setVolumeStr("0.1");
+    if (isNaN(val) || val < 0.001) {
+      setVolumeStr("0.001");
     } else {
       setVolumeStr(val.toString());
     }
@@ -82,7 +82,7 @@ const TradePanel: React.FC<TradePanelProps> = ({
   const handleTrade = (type: "buy" | "sell") => {
     const finalVolume = parseFloat(volumeStr);
     const validVolume =
-      isNaN(finalVolume) || finalVolume < 0.1 ? 0.1 : finalVolume;
+      isNaN(finalVolume) || finalVolume < 0.001 ? 0.001 : finalVolume;
     const payload = {
       symbol,
       quantity: validVolume,
@@ -475,14 +475,14 @@ const TradePanel: React.FC<TradePanelProps> = ({
             <button
               className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
               style={{ backgroundColor: "transparent" }}
-              onClick={() => handleVolumeStep(-0.1)}
+              onClick={() => handleVolumeStep(-0.001)}
             >
               −
             </button>
             <button
               className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
               style={{ backgroundColor: "transparent" }}
-              onClick={() => handleVolumeStep(0.1)}
+              onClick={() => handleVolumeStep(0.001)}
             >
               +
             </button>
