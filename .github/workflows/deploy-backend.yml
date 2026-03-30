@@ -1,0 +1,42 @@
+name: Deploy Backend to DigitalOcean
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "price-poller-be/**"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Build container image
+        run: |
+          cd price-poller-be
+          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/exness-backend:$(echo $GITHUB_SHA | head -c7) .
+          docker tag registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/exness-backend:$(echo $GITHUB_SHA | head -c7) registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/exness-backend:latest
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Push image to DigitalOcean Container Registry
+        run: |
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/exness-backend:$(echo $GITHUB_SHA | head -c7)
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/exness-backend:latest
+
+      - name: Update App Platform deployment
+        run: |
+          doctl apps update ${{ secrets.DO_APP_ID }} --spec price-poller-be/app.yaml
+
+      - name: Deploy notification
+        run: echo "✅ Backend deployed successfully!"
