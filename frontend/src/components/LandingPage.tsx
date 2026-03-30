@@ -12,6 +12,9 @@ interface LandingPageProps {
   onAuthSuccess: () => void;
 }
 
+/** Must match auth modal scale — see motion.div below. */
+const LANDING_ZOOM = 1.22;
+
 export function LandingPage({ onAuthSuccess }: LandingPageProps) {
   const [showAuthCard, setShowAuthCard] = useState(false);
 
@@ -38,7 +41,10 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
       </div>
 
       <Navigation onGetStarted={handleGetStarted} />
-      <main className="origin-top scale-[1.1] max-w-[100vw] [transform:translateZ(0)]">
+      <main
+        className="origin-top max-w-[100vw] will-change-transform"
+        style={{ transform: `scale(${LANDING_ZOOM})` }}
+      >
         <Hero onGetStarted={handleGetStarted} />
         <Features />
         <HowItWorks onGetStarted={handleGetStarted} />
@@ -62,11 +68,11 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
             {/* Auth Card */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1.1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                initial={{ opacity: 0, scale: 0.85, y: 24 }}
+                animate={{ opacity: 1, scale: LANDING_ZOOM, y: 0 }}
+                exit={{ opacity: 0, scale: 0.85, y: 24 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="pointer-events-auto origin-center"
+                className="pointer-events-auto origin-center will-change-transform"
               >
                 <AuthCard onAuthSuccess={onAuthSuccess} onClose={handleCloseAuth} />
               </motion.div>
