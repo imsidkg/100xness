@@ -13,7 +13,7 @@ export const getCandles = async (req: Request, res: Response) => {
       });
     }
 
-    const data = await getAggregatedData(symbol, interval as string);
+    const data = await getAggregatedData(symbol as string, interval as string);
     return res.json({
       data,
       status: 200,

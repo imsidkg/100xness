@@ -64,6 +64,10 @@ export async function initDB() {
       realized_pnl DOUBLE PRECISION,
       stop_loss DOUBLE PRECISION,
       take_profit DOUBLE PRECISION,
+      commission DOUBLE PRECISION DEFAULT 0,
+      swap DOUBLE PRECISION DEFAULT 0,
+      order_type TEXT NOT NULL DEFAULT 'market', -- 'market', 'limit', 'stop'
+      limit_price DOUBLE PRECISION,
       FOREIGN KEY (user_id) REFERENCES users (id)
     );
   `);
@@ -113,6 +117,66 @@ export async function initDB() {
     `);
   }
 
+  // Check if 'commission' column exists in 'trades' table, and add if not
+  const commissionColumnExists = await pool.query(`
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'trades' AND column_name = 'commission'
+    );
+  `);
+
+  if (!commissionColumnExists.rows[0].exists) {
+    await pool.query(`
+      ALTER TABLE trades ADD COLUMN commission DOUBLE PRECISION DEFAULT 0;
+    `);
+  }
+
+  // Check if 'swap' column exists in 'trades' table, and add if not
+  const swapColumnExists = await pool.query(`
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'trades' AND column_name = 'swap'
+    );
+  `);
+
+  if (!swapColumnExists.rows[0].exists) {
+    await pool.query(`
+      ALTER TABLE trades ADD COLUMN swap DOUBLE PRECISION DEFAULT 0;
+    `);
+  }
+
+  // Check if 'order_type' column exists in 'trades' table, and add if not
+  const orderTypeColumnExists = await pool.query(`
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'trades' AND column_name = 'order_type'
+    );
+  `);
+
+  if (!orderTypeColumnExists.rows[0].exists) {
+    await pool.query(`
+      ALTER TABLE trades ADD COLUMN order_type TEXT NOT NULL DEFAULT 'market';
+    `);
+  }
+
+  // Check if 'limit_price' column exists in 'trades' table, and add if not
+  const limitPriceColumnExists = await pool.query(`
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'trades' AND column_name = 'limit_price'
+    );
+  `);
+
+  if (!limitPriceColumnExists.rows[0].exists) {
+    await pool.query(`
+      ALTER TABLE trades ADD COLUMN limit_price DOUBLE PRECISION;
+    `);
+  }
+
   // Create hypertable (TimescaleDB)
   await pool.query(`
     SELECT create_hypertable('tickers', 'time', if_not_exists => TRUE);
@@ -148,7 +212,7 @@ export async function initDB() {
         error.code === "22023" &&
         error.detail &&
         error.detail.includes(
-          "refresh policy with the same start and end offset already exists"
+          "refresh policy with the same start and end offset already exists",
         )
       ) &&
       error.code !== "42710"
@@ -159,12 +223,12 @@ export async function initDB() {
 
   try {
     await pool.query(`
-    CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_hourly', '2000-01-01', NOW());
+    CALL refresh_continuous_aggregate('tickers_hourly', NULL, NULL);
   `);
   } catch (error) {
     console.error(
       "Error refreshing continuous aggregate tickers_hourly:",
-      error
+      error,
     );
   }
 
@@ -198,7 +262,7 @@ export async function initDB() {
         error.code === "22023" &&
         error.detail &&
         error.detail.includes(
-          "refresh policy with the same start and end offset already exists"
+          "refresh policy with the same start and end offset already exists",
         )
       ) &&
       error.code !== "42710"
@@ -209,7 +273,7 @@ export async function initDB() {
 
   try {
     await pool.query(`
-      CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_1m', '2000-01-01', NOW());
+      CALL refresh_continuous_aggregate('tickers_1m', NULL, NULL);
     `);
   } catch (error) {
     console.error("Error refreshing continuous aggregate tickers_1m:", error);
@@ -245,7 +309,7 @@ export async function initDB() {
         error.code === "22023" &&
         error.detail &&
         error.detail.includes(
-          "refresh policy with the same start and end offset already exists"
+          "refresh policy with the same start and end offset already exists",
         )
       ) &&
       error.code !== "42710"
@@ -256,7 +320,7 @@ export async function initDB() {
 
   try {
     await pool.query(`
-      CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_5m', '2000-01-01', NOW());
+      CALL refresh_continuous_aggregate('tickers_5m', NULL, NULL);
     `);
   } catch (error) {
     console.error("Error refreshing continuous aggregate tickers_5m:", error);
@@ -292,7 +356,7 @@ export async function initDB() {
         error.code === "22023" &&
         error.detail &&
         error.detail.includes(
-          "refresh policy with the same start and end offset already exists"
+          "refresh policy with the same start and end offset already exists",
         )
       ) &&
       error.code !== "42710"
@@ -303,7 +367,7 @@ export async function initDB() {
 
   try {
     await pool.query(`
-      CALL REFRESH_CONTINUOUS_AGGREGATE('tickers_10m', '2000-01-01', NOW());
+      CALL refresh_continuous_aggregate('tickers_10m', NULL, NULL);
     `);
   } catch (error) {
     console.error("Error refreshing continuous aggregate tickers_10m:", error);

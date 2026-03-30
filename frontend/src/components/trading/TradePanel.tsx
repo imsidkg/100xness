@@ -1,0 +1,717 @@
+import React, { useState, useMemo, useEffect } from "react";
+import { CircleHelp, Pencil } from "lucide-react";
+import type { TradeToEdit } from "../TradingDashboard";
+
+interface TradePanelProps {
+  symbol: string;
+  symbolDisplay: string;
+  bid: string;
+  ask: string;
+  onTrade: (type: "buy" | "sell", data: any) => Promise<void>;
+  tradeError: string | null;
+  tradeToEdit?: TradeToEdit | null;
+  onCancelEdit?: () => void;
+  accountSummary?: any;
+}
+
+const TradePanel: React.FC<TradePanelProps> = ({
+  symbol,
+  symbolDisplay: _symbolDisplay,
+  bid,
+  ask,
+  onTrade,
+  tradeError,
+  tradeToEdit,
+  onCancelEdit,
+  accountSummary: _accountSummary,
+}) => {
+  const [orderTab, setOrderTab] = useState<"market" | "pending">("market");
+  const [volumeStr, setVolumeStr] = useState("0.1");
+  const [takeProfit, setTakeProfit] = useState<number | undefined>(undefined);
+  const [stopLoss, setStopLoss] = useState<number | undefined>(undefined);
+  const [limitPrice, setLimitPrice] = useState<number | undefined>(undefined);
+  const [leverage, setLeverage] = useState<number>(1);
+  const [selectedSide, setSelectedSide] = useState<"buy" | "sell">("buy");
+  const [editingLeverage, setEditingLeverage] = useState(false);
+
+  // Modify form state
+  const [editTp, setEditTp] = useState<number | undefined>(undefined);
+  const [editSl, setEditSl] = useState<number | undefined>(undefined);
+
+  // When tradeToEdit changes, populate edit fields
+  useEffect(() => {
+    if (tradeToEdit) {
+      setEditTp(tradeToEdit.take_profit);
+      setEditSl(tradeToEdit.stop_loss);
+    }
+  }, [tradeToEdit]);
+
+  const bidNum = parseFloat(bid) || 0;
+  const askNum = parseFloat(ask) || 0;
+  const spread = useMemo(() => {
+    const s = Math.abs(askNum - bidNum);
+    return s.toFixed(2);
+  }, [bidNum, askNum]);
+
+  const handleVolumeStep = (delta: number) => {
+    setVolumeStr((prev: string) => {
+      const current = parseFloat(prev) || 0.001;
+      const next = Math.round((current + delta) * 1000) / 1000;
+      return Math.max(0.001, next).toString();
+    });
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val === "" || /^\d*\.?\d{0,3}$/.test(val)) {
+      setVolumeStr(val);
+    }
+  };
+
+  const handleVolumeBlur = () => {
+    const val = parseFloat(volumeStr);
+    if (isNaN(val) || val < 0.001) {
+      setVolumeStr("0.001");
+    } else {
+      setVolumeStr(val.toString());
+    }
+  };
+
+  const volume = parseFloat(volumeStr) || 0;
+
+  const handleTrade = (type: "buy" | "sell") => {
+    const finalVolume = parseFloat(volumeStr);
+    const validVolume =
+      isNaN(finalVolume) || finalVolume < 0.001 ? 0.001 : finalVolume;
+    const payload = {
+      symbol,
+      quantity: validVolume,
+      leverage,
+      orderType: orderTab === "market" ? "market" : "limit",
+      limitPrice: orderTab === "pending" ? limitPrice : undefined,
+      stopLoss,
+      takeProfit,
+    };
+
+    // Debug log: what the user is actually trying to trade
+    console.log("[TradePanel] Submit trade", {
+      side: type,
+      symbol,
+      orderTab,
+      payload,
+    });
+
+    onTrade(type, payload).then(() => {
+      // Clear inputs if trade was submitted successfully
+      if (!tradeError) {
+        setTakeProfit(undefined);
+        setStopLoss(undefined);
+        setLimitPrice(undefined);
+        setVolumeStr("0.1");
+        setOrderTab("market");
+      }
+    });
+  };
+
+  const handleSaveModify = () => {
+    if (!tradeToEdit) return;
+    // TODO: Call API to modify the trade's TP/SL
+    // For now, just close the edit form
+    onCancelEdit?.();
+  };
+
+  const formatBigPrice = (price: number) => {
+    const str = price.toFixed(3);
+    const parts = str.split(".");
+    const intPart = parts[0];
+    const decPart = parts[1] || "000";
+    const mainDec = decPart.slice(0, -1);
+    const lastDigit = decPart.slice(-1);
+    return { intPart, mainDec, lastDigit };
+  };
+
+  const bidFormatted = formatBigPrice(bidNum);
+  const askFormatted = formatBigPrice(askNum);
+
+  const fmt = (v: number, d = 4) =>
+    new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: d,
+      maximumFractionDigits: d,
+    }).format(v);
+
+  // ============== MODIFY ORDER MODE ==============
+  if (tradeToEdit) {
+    return (
+      <div className="flex flex-col h-full bg-[#141D23]">
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 py-3 border-b border-[#3F474C]">
+          <div>
+            <div className="text-white font-medium text-[14px]">
+              Modify Order
+            </div>
+            <div className="text-[#787b86] text-[14px] mt-0.5">
+              #{tradeToEdit.order_id.slice(0, 8)}
+            </div>
+          </div>
+          <button
+            className="p-1 text-[#787b86] hover:text-white rounded transition-colors"
+            onClick={onCancelEdit}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Trade Info Grid */}
+        <div className="grid grid-cols-2 gap-3 p-4 border-b border-[#3F474C]/30">
+          <div className="flex flex-col gap-1">
+            <span className="text-[#787b86] text-[14px] uppercase tracking-wide">
+              Symbol
+            </span>
+            <span className="text-[#d1d4dc] font-medium font-mono text-[14px]">
+              {tradeToEdit.symbol}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[#787b86] text-[14px] uppercase tracking-wide">
+              Type
+            </span>
+            <span
+              className={`font-medium font-mono text-[14px] ${tradeToEdit.type === "buy" ? "text-emerald-400" : "text-red-400"}`}
+            >
+              {tradeToEdit.type.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[#787b86] text-[14px] uppercase tracking-wide">
+              Entry Price
+            </span>
+            <span className="text-[#d1d4dc] font-mono text-[14px]">
+              {fmt(tradeToEdit.entry_price)}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[#787b86] text-[14px] uppercase tracking-wide">
+              Volume
+            </span>
+            <span className="text-[#d1d4dc] font-mono text-[14px]">
+              {tradeToEdit.quantity}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[#787b86] text-[14px] uppercase tracking-wide">
+              Leverage
+            </span>
+            <span className="text-[#d1d4dc] font-mono text-[14px]">
+              {tradeToEdit.leverage}x
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[#787b86] text-[14px] uppercase tracking-wide">
+              Margin
+            </span>
+            <span className="text-[#d1d4dc] font-mono text-[14px]">
+              ${fmt(tradeToEdit.margin, 2)}
+            </span>
+          </div>
+        </div>
+
+        {/* TP / SL Edit Fields */}
+        <div className="p-4 flex flex-col gap-4 flex-1">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <label className="text-[#d1d4dc] text-[14px] font-medium">
+                Take Profit
+              </label>
+              <CircleHelp size={14} className="text-[#4a4e5a]" />
+            </div>
+            <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+              <input
+                type="text"
+                className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
+                placeholder="Not set"
+                value={editTp ?? ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEditTp(
+                    e.target.value ? parseFloat(e.target.value) : undefined,
+                  )
+                }
+              />
+              <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+                Price
+              </span>
+              <button
+                className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
+                style={{ backgroundColor: "transparent" }}
+                onClick={() =>
+                  setEditTp((prev: number | undefined) =>
+                    prev ? prev - 1 : askNum + 10,
+                  )
+                }
+              >
+                −
+              </button>
+              <button
+                className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
+                style={{ backgroundColor: "transparent" }}
+                onClick={() =>
+                  setEditTp((prev: number | undefined) =>
+                    prev ? prev + 1 : askNum + 10,
+                  )
+                }
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <label className="text-[#d1d4dc] text-[14px] font-medium">
+                Stop Loss
+              </label>
+              <CircleHelp size={14} className="text-[#4a4e5a]" />
+            </div>
+            <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+              <input
+                type="text"
+                className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
+                placeholder="Not set"
+                value={editSl ?? ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEditSl(
+                    e.target.value ? parseFloat(e.target.value) : undefined,
+                  )
+                }
+              />
+              <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+                Price
+              </span>
+              <button
+                className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
+                style={{ backgroundColor: "transparent" }}
+                onClick={() =>
+                  setEditSl((prev: number | undefined) =>
+                    prev ? prev - 1 : bidNum - 10,
+                  )
+                }
+              >
+                −
+              </button>
+              <button
+                className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
+                style={{ backgroundColor: "transparent" }}
+                onClick={() =>
+                  setEditSl((prev: number | undefined) =>
+                    prev ? prev + 1 : bidNum - 10,
+                  )
+                }
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-2 p-4 pt-2">
+          <div
+            className="flex items-center justify-center bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] text-[15px] font-medium py-2.5 px-4 rounded transition-colors cursor-pointer select-none"
+            onClick={handleSaveModify}
+          >
+            Save Changes
+          </div>
+          <div
+            className="flex items-center justify-center bg-[#222E34] hover:bg-[#2a3640] text-[#d1d4dc] text-[15px] font-medium py-2.5 px-4 rounded transition-colors cursor-pointer select-none"
+            onClick={onCancelEdit}
+          >
+            Cancel
+          </div>
+        </div>
+
+        {/* Footer */}
+        {/* <div className="flex items-center justify-between px-4 py-3 mt-auto border-t border-[#3F474C] text-[14px] text-[#787b86]">
+          <div className="font-semibold tracking-wider">100x</div>
+          <div>4.3.1</div>
+        </div> */}
+      </div>
+    );
+  }
+
+  // ============== REGULAR NEW ORDER MODE ==============
+  return (
+    <div className="flex flex-col h-full bg-[#141D23] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#2c3044]">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-[#3F474C]">
+        <span className="text-[14px] font-normal text-white uppercase">
+          Trade Execution
+        </span>
+      </div>
+
+      {/* Sell / Buy Selectors */}
+      <div className="flex justify-between items-stretch gap-1 px-1.5 md:px-2.5 mt-4">
+        <div
+          className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded border border-red-500 transition-colors cursor-pointer ${
+            selectedSide === "sell"
+              ? "text-white"
+              : "text-red-500 hover:bg-red-500/10"
+          }`}
+          style={{
+            backgroundColor:
+              selectedSide === "sell" ? "#ef4444" : "transparent",
+          }}
+          onClick={() => setSelectedSide("sell")}
+        >
+          <span className="text-[10px] xl:text-[11px] font-bold mb-0.5 uppercase tracking-wider">
+            Sell
+          </span>
+          <span className="font-mono flex items-baseline">
+            <span className="text-sm xl:text-base">
+              {bidFormatted.intPart}.
+            </span>
+            <span className="text-base xl:text-lg font-bold">
+              {bidFormatted.mainDec}
+            </span>
+            <sup className="text-[10px] xl:text-xs -top-1.5 relative">
+              {bidFormatted.lastDigit}
+            </sup>
+          </span>
+        </div>
+
+        <div className="flex flex-col items-center justify-center shrink-0">
+          <span className="text-[9px] text-[#787b86] rounded bg-[#141D23] border border-[#3F474C] px-1 py-0.5 font-mono whitespace-nowrap">
+            {spread} USD
+          </span>
+        </div>
+
+        <div
+          className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded border border-[#148BF9] transition-colors cursor-pointer ${
+            selectedSide === "buy"
+              ? "text-white"
+              : "text-[#148BF9] hover:bg-[#148BF9]/10"
+          }`}
+          style={{
+            backgroundColor: selectedSide === "buy" ? "#148BF9" : "transparent",
+          }}
+          onClick={() => setSelectedSide("buy")}
+        >
+          <span className="text-[10px] xl:text-[11px] font-bold mb-0.5 uppercase tracking-wider">
+            Buy
+          </span>
+          <span className="font-mono flex items-baseline">
+            <span className="text-sm xl:text-base">
+              {askFormatted.intPart}.
+            </span>
+            <span className="text-base xl:text-lg font-bold">
+              {askFormatted.mainDec}
+            </span>
+            <sup className="text-[10px] xl:text-xs -top-1.5 relative">
+              {askFormatted.lastDigit}
+            </sup>
+          </span>
+        </div>
+      </div>
+
+      {/* Order Type Tabs */}
+      <div className="flex mx-4 mt-4 rounded-md border border-[#3F474C] overflow-hidden">
+        <button
+          className={`flex-1 py-2 text-[14px] font-medium transition-colors text-center ${orderTab === "market" ? "text-white" : "text-[#787b86] hover:text-[#d1d4dc]"}`}
+          style={{
+            backgroundColor: orderTab === "market" ? "#222E34" : "transparent",
+          }}
+          onClick={() => setOrderTab("market")}
+        >
+          Market
+        </button>
+        <button
+          className={`flex-1 py-2 text-[14px] font-medium transition-colors text-center border-l border-[#3F474C] ${orderTab === "pending" ? "text-white" : "text-[#787b86] hover:text-[#d1d4dc]"}`}
+          style={{
+            backgroundColor: orderTab === "pending" ? "#222E34" : "transparent",
+          }}
+          onClick={() => setOrderTab("pending")}
+        >
+          Pending
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-4 p-4 flex-1">
+        {orderTab === "pending" && (
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[#d1d4dc] text-[14px] font-medium">
+              Limit Price
+            </label>
+            <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+              <input
+                type="number"
+                className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
+                value={limitPrice ?? ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setLimitPrice(
+                    e.target.value ? parseFloat(e.target.value) : undefined,
+                  )
+                }
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Volume */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[#d1d4dc] text-[14px] font-medium">
+            Volume
+          </label>
+          <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+            <input
+              type="text"
+              className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] font-mono"
+              value={volumeStr}
+              onChange={handleVolumeChange}
+              onBlur={handleVolumeBlur}
+            />
+            <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+              Lots
+            </span>
+            <button
+              className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
+              style={{ backgroundColor: "transparent" }}
+              onClick={() => handleVolumeStep(-0.001)}
+            >
+              −
+            </button>
+            <button
+              className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
+              style={{ backgroundColor: "transparent" }}
+              onClick={() => handleVolumeStep(0.001)}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Take Profit */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <label className="text-[#d1d4dc] text-[14px] font-medium">
+              Take Profit
+            </label>
+            <CircleHelp size={14} className="text-[#4a4e5a]" />
+          </div>
+          <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+            <input
+              type="text"
+              className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
+              placeholder="Not set"
+              value={takeProfit ?? ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setTakeProfit(
+                  e.target.value ? parseFloat(e.target.value) : undefined,
+                )
+              }
+            />
+            <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+              Price
+            </span>
+            <button
+              className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
+              style={{ backgroundColor: "transparent" }}
+              onClick={() =>
+                setTakeProfit((prev: number | undefined) =>
+                  prev ? prev - 1 : askNum + 10,
+                )
+              }
+            >
+              −
+            </button>
+            <button
+              className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
+              style={{ backgroundColor: "transparent" }}
+              onClick={() =>
+                setTakeProfit((prev: number | undefined) =>
+                  prev ? prev + 1 : askNum + 10,
+                )
+              }
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Stop Loss */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <label className="text-[#d1d4dc] text-[14px] font-medium">
+              Stop Loss
+            </label>
+            <CircleHelp size={14} className="text-[#4a4e5a]" />
+          </div>
+          <div className="flex items-center bg-[#1A2228] border border-[#3F474C] rounded transition-colors focus-within:border-[#2962ff]">
+            <input
+              type="text"
+              className="flex-1 bg-transparent border-none outline-none text-[#d1d4dc] px-3 py-2 text-[14px] placeholder:text-[#4a4e5a] font-mono"
+              placeholder="Not set"
+              value={stopLoss ?? ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setStopLoss(
+                  e.target.value ? parseFloat(e.target.value) : undefined,
+                )
+              }
+            />
+            <span className="text-[#787b86] text-[13px] px-3 select-none border-l border-[#3F474C] py-2">
+              Price
+            </span>
+            <button
+              className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors"
+              style={{ backgroundColor: "transparent" }}
+              onClick={() =>
+                setStopLoss((prev: number | undefined) =>
+                  prev ? prev - 1 : bidNum - 10,
+                )
+              }
+            >
+              −
+            </button>
+            <button
+              className="w-8 h-[34px] flex items-center justify-center text-[#787b86] border-l border-[#3F474C] hover:text-white transition-colors rounded-r"
+              style={{ backgroundColor: "transparent" }}
+              onClick={() =>
+                setStopLoss((prev: number | undefined) =>
+                  prev ? prev + 1 : bidNum - 10,
+                )
+              }
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Error */}
+        {tradeError && (
+          <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-3 py-2 rounded text-[14px] mt-2">
+            {tradeError}
+          </div>
+        )}
+
+        {/* Order Summary — always visible */}
+        {(() => {
+          const price = selectedSide === "buy" ? askNum : bidNum;
+          const notional = price * volume;
+          const marginRequired = notional / (leverage || 1);
+          const fees = notional * 0.00075; // 0.075% commission
+          const swap = -(notional * 0.0001); // simulated overnight swap
+          const pipValue = volume * 0.1;
+
+          return (
+            <div className="flex flex-col gap-0 mt-4">
+              {/* Confirm button */}
+              <div className="flex flex-col gap-2">
+                <div
+                  className="py-3 px-4 text-center text-white font-semibold text-[14px] cursor-pointer transition-colors rounded"
+                  style={{
+                    backgroundColor:
+                      selectedSide === "sell" ? "#ef4444" : "#148BF9",
+                  }}
+                  onClick={() => {
+                    handleTrade(selectedSide);
+                  }}
+                >
+                  Confirm {selectedSide === "buy" ? "Buy" : "Sell"}{" "}
+                  {volume.toFixed(2)} lots
+                </div>
+              </div>
+
+              {/* Summary details */}
+              <div className="flex flex-col gap-0 mt-3">
+                {/* Fees */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Fees:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#d1d4dc] font-mono">
+                      ≈ {fees.toFixed(2)} USD
+                    </span>
+                    <CircleHelp size={12} className="text-[#4a4e5a]" />
+                  </div>
+                </div>
+
+                {/* Leverage — editable */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Leverage:</span>
+                  <div className="flex items-center gap-1.5">
+                    {editingLeverage ? (
+                      <input
+                        type="number"
+                        className="w-16 bg-[#141D23] border border-[#3F474C] rounded px-2 py-0.5 text-[13px] text-[#d1d4dc] font-mono outline-none text-right"
+                        value={leverage}
+                        onChange={(e) =>
+                          setLeverage(
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
+                        }
+                        onBlur={() => setEditingLeverage(false)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") setEditingLeverage(false);
+                        }}
+                        autoFocus
+                        min="1"
+                      />
+                    ) : (
+                      <span className="text-[#d1d4dc] font-mono">
+                        1:{leverage}
+                      </span>
+                    )}
+                    <Pencil
+                      size={12}
+                      className="text-[#787b86] hover:text-white cursor-pointer transition-colors"
+                      onClick={() => setEditingLeverage(true)}
+                    />
+                  </div>
+                </div>
+
+                {/* Margin */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Margin:</span>
+                  <span className="text-[#d1d4dc] font-mono">
+                    {marginRequired.toFixed(2)} USD
+                  </span>
+                </div>
+
+                {/* Swap */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Swap:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#d1d4dc] font-mono">
+                      {swap.toFixed(2)} USD
+                    </span>
+                    <CircleHelp size={12} className="text-[#4a4e5a]" />
+                  </div>
+                </div>
+
+                {/* Pip Value */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Pip Value:</span>
+                  <span className="text-[#d1d4dc] font-mono">
+                    {pipValue.toFixed(2)} USD
+                  </span>
+                </div>
+
+                {/* Volume in USD */}
+                <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                  <span className="text-[#787b86]">Volume in USD:</span>
+                  <span className="text-[#d1d4dc] font-mono">
+                    {notional.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    USD
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    </div>
+  );
+};
+
+export default TradePanel;

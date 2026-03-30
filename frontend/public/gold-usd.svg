@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420">
+  <defs>
+    <clipPath id="flagClip">
+      <circle cx="160" cy="160" r="145"/>
+    </clipPath>
+    <clipPath id="goldClip">
+      <circle cx="260" cy="260" r="145"/>
+    </clipPath>
+
+    <radialGradient id="goldGrad" cx="38%" cy="32%" r="68%">
+      <stop offset="0%"   stop-color="#FFF8C0"/>
+      <stop offset="20%"  stop-color="#FFD700"/>
+      <stop offset="50%"  stop-color="#C8990A"/>
+      <stop offset="78%"  stop-color="#9A7000"/>
+      <stop offset="100%" stop-color="#5C3A00"/>
+    </radialGradient>
+
+    <radialGradient id="goldShine" cx="32%" cy="28%" r="52%">
+      <stop offset="0%"   stop-color="white" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+
+    <pattern id="goldLines" x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(40)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="#B8860B" stroke-width="0.35" stroke-opacity="0.25"/>
+    </pattern>
+
+    <filter id="shadowFlag" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="3" dy="5" stdDeviation="10" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="shadowGold" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="3" dy="5" stdDeviation="12" flood-color="#9A7000" flood-opacity="0.55"/>
+    </filter>
+
+    <!-- Star shape reusable -->
+    <path id="star" d="M5,0 L6.2,3.8 L10,3.8 L7,6.1 L8.1,10 L5,7.7 L1.9,10 L3,6.1 L0,3.8 L3.8,3.8 Z" fill="white"/>
+  </defs>
+
+  <!-- ══════════════════════════════════ -->
+  <!--         AMERICAN FLAG CIRCLE       -->
+  <!-- ══════════════════════════════════ -->
+  <g filter="url(#shadowFlag)">
+    <g clip-path="url(#flagClip)">
+      <rect x="15" y="15" width="290" height="290" fill="#BF0A30"/>
+      <rect x="15" y="15"  width="290" height="22.3" fill="#FFFFFF"/>
+      <rect x="15" y="59"  width="290" height="22.3" fill="#FFFFFF"/>
+      <rect x="15" y="103" width="290" height="22.3" fill="#FFFFFF"/>
+      <rect x="15" y="147" width="290" height="22.3" fill="#FFFFFF"/>
+      <rect x="15" y="191" width="290" height="22.3" fill="#FFFFFF"/>
+      <rect x="15" y="235" width="290" height="22.3" fill="#FFFFFF"/>
+      <rect x="15" y="279" width="290" height="22.3" fill="#FFFFFF"/>
+      <rect x="15" y="15" width="116" height="134" fill="#002868"/>
+      <!-- Stars -->
+      <use href="#star" transform="translate(27,31)"/><use href="#star" transform="translate(44,31)"/><use href="#star" transform="translate(61,31)"/><use href="#star" transform="translate(78,31)"/><use href="#star" transform="translate(95,31)"/><use href="#star" transform="translate(112,31)"/>
+      <use href="#star" transform="translate(36,45)"/><use href="#star" transform="translate(53,45)"/><use href="#star" transform="translate(70,45)"/><use href="#star" transform="translate(87,45)"/><use href="#star" transform="translate(104,45)"/>
+      <use href="#star" transform="translate(27,59)"/><use href="#star" transform="translate(44,59)"/><use href="#star" transform="translate(61,59)"/><use href="#star" transform="translate(78,59)"/><use href="#star" transform="translate(95,59)"/><use href="#star" transform="translate(112,59)"/>
+      <use href="#star" transform="translate(36,73)"/><use href="#star" transform="translate(53,73)"/><use href="#star" transform="translate(70,73)"/><use href="#star" transform="translate(87,73)"/><use href="#star" transform="translate(104,73)"/>
+      <use href="#star" transform="translate(27,87)"/><use href="#star" transform="translate(44,87)"/><use href="#star" transform="translate(61,87)"/><use href="#star" transform="translate(78,87)"/><use href="#star" transform="translate(95,87)"/><use href="#star" transform="translate(112,87)"/>
+      <use href="#star" transform="translate(36,101)"/><use href="#star" transform="translate(53,101)"/><use href="#star" transform="translate(70,101)"/><use href="#star" transform="translate(87,101)"/><use href="#star" transform="translate(104,101)"/>
+      <use href="#star" transform="translate(27,115)"/><use href="#star" transform="translate(44,115)"/><use href="#star" transform="translate(61,115)"/><use href="#star" transform="translate(78,115)"/><use href="#star" transform="translate(95,115)"/><use href="#star" transform="translate(112,115)"/>
+      <use href="#star" transform="translate(36,129)"/><use href="#star" transform="translate(53,129)"/><use href="#star" transform="translate(70,129)"/><use href="#star" transform="translate(87,129)"/><use href="#star" transform="translate(104,129)"/>
+      <use href="#star" transform="translate(27,140)"/><use href="#star" transform="translate(44,140)"/><use href="#star" transform="translate(61,140)"/><use href="#star" transform="translate(78,140)"/><use href="#star" transform="translate(95,140)"/><use href="#star" transform="translate(112,140)"/>
+    </g>
+    <circle cx="160" cy="160" r="145" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <circle cx="160" cy="160" r="141" fill="none" stroke="#002868" stroke-width="1.2" stroke-dasharray="5,3"/>
+  </g>
+
+  <!-- ══════════════════════════════════ -->
+  <!--         GOLD COIN CIRCLE           -->
+  <!-- ══════════════════════════════════ -->
+  <g filter="url(#shadowGold)">
+    <g clip-path="url(#goldClip)">
+      <circle cx="260" cy="260" r="145" fill="url(#goldGrad)"/>
+      <circle cx="260" cy="260" r="145" fill="url(#goldLines)"/>
+      <circle cx="260" cy="260" r="145" fill="url(#goldShine)"/>
+      <circle cx="260" cy="260" r="136" fill="none" stroke="#9A7000" stroke-width="1.5" stroke-opacity="0.5"/>
+      <circle cx="260" cy="260" r="131" fill="none" stroke="#FFE566" stroke-width="0.8" stroke-opacity="0.4"/>
+
+      <!--
+        DOLLAR SIGN — proper $ shape
+        An S that curves:
+          - top: opens to the RIGHT (top-right to top-left arc)
+          - bottom: opens to the LEFT (bottom-left to bottom-right arc)
+        Plus a vertical bar through the middle
+      -->
+
+      <!-- Vertical bar (single, centered through S) -->
+      <rect x="256" y="170" width="8" height="180" rx="4" fill="#4A2E00" fill-opacity="0.85"/>
+
+      <!-- S curve: one continuous path -->
+      <!-- Top half: starts top-right, swings left across center -->
+      <!-- Bottom half: continues from center-left, swings right to bottom -->
+      <path d="
+        M 292,205
+        C 292,188  270,178  252,180
+        C 234,182  218,192  218,210
+        C 218,228  234,238  252,244
+        C 270,250  302,258  302,278
+        C 302,298  284,316  260,318
+        C 236,320  218,308  218,295
+      "
+        fill="none"
+        stroke="#4A2E00"
+        stroke-width="20"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-opacity="0.85"
+      />
+    </g>
+    <circle cx="260" cy="260" r="145" fill="none" stroke="#FFD700" stroke-width="3.5"/>
+    <circle cx="260" cy="260" r="141" fill="none" stroke="#A07800" stroke-width="1"/>
+  </g>
+
+</svg>

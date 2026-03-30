@@ -57,7 +57,7 @@ export function Features() {
           className="text-center mb-16 space-y-4"
         >
           <div className="inline-block px-6 py-2 rounded-lg bg-gradient-to-r from-[#ffffff] to-gray-500 border border-gray-500/20 shadow-cyan-900">
-            <span className="text-sm text-gray-900 uppercase tracking-wider">Platform Features
+            <span className="text-base text-gray-900 uppercase tracking-wider">Platform Features
               <span className="absolute bottom-0 left-0 h-full -ml-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -78,7 +78,7 @@ export function Features() {
             Everything You Need to{' '}
             <span className="text-gray-400">Trade Smart</span>
           </h2>
-          <p className="text-lg md:text-xl text-black/60 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-black/60 max-w-2xl mx-auto">
             Professional-grade tools and enterprise security, designed for traders of all levels.
           </p>
         </motion.div>

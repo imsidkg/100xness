@@ -51,7 +51,7 @@ export function FinalCTA({ onGetStarted }: FinalCTAProps) {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/30 border border-white/40 backdrop-blur-sm"
             >
               <Sparkles className="w-4 h-4 text-white" />
-              <span className="text-sm text-gray-900">Join 1 Million+ Traders</span>
+              <span className="text-base text-gray-900">Join 1 Million+ Traders</span>
             </motion.div>
 
             {/* Headline */}
@@ -67,7 +67,7 @@ export function FinalCTA({ onGetStarted }: FinalCTAProps) {
                   Trading Journey?
                 </span>
               </h2>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+              <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
                 Join millions of traders who trust TradePro for fast, secure, and intelligent trading. 
                 Start with $0 fees and get $10 bonus credit.
               </p>
@@ -98,7 +98,7 @@ export function FinalCTA({ onGetStarted }: FinalCTAProps) {
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex flex-wrap justify-center items-center gap-6 md:gap-8 pt-8 text-white/80 text-sm"
+              className="flex flex-wrap justify-center items-center gap-6 md:gap-8 pt-8 text-white/80 text-base"
             >
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">

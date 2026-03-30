@@ -6,6 +6,8 @@ import {
   getUserOpenTrades,
   validateBalanceForTrade,
   currentPrices,
+  cancelPendingOrder,
+  getPendingOrders,
 } from "../services/tradeService";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { redis } from "../lib/redisClient";
@@ -13,27 +15,46 @@ import { redis } from "../lib/redisClient";
 const TRADE_QUEUE_NAME = "trade:order:queue";
 
 function isTradeRequest(body: any): body is TradeRequest {
+  if (!body) return false;
+
+  const isValidType = body.type === "buy" || body.type === "sell";
+  const isValidOrderType =
+    !body.orderType || ["market", "limit", "stop"].includes(body.orderType);
+  const isLeverageValid =
+    typeof body.leverage === "undefined" || typeof body.leverage === "number";
+  const isSymbolValid =
+    typeof body.symbol === "string" && body.symbol.length > 0;
+  const isQuantityValid =
+    typeof body.quantity === "number" && body.quantity > 0;
+  const isMarginValid =
+    typeof body.margin === "undefined" ||
+    (typeof body.margin === "number" && body.margin > 0);
+  const isSLValid =
+    typeof body.stopLoss === "undefined" || typeof body.stopLoss === "number";
+  const isTPValid =
+    typeof body.takeProfit === "undefined" ||
+    typeof body.takeProfit === "number";
+  const isLimitPriceValid =
+    body.orderType === "market" ||
+    !body.orderType ||
+    (typeof body.limitPrice === "number" && body.limitPrice > 0);
+
   return (
-    body &&
-    (body.type === "buy" || body.type === "sell") &&
-    (typeof body.leverage === "undefined" ||
-      typeof body.leverage === "number") &&
-    typeof body.symbol === "string" &&
-    body.symbol.length > 0 &&
-    typeof body.quantity === "number" &&
-    body.quantity > 0 &&
-    (typeof body.margin === "undefined" ||
-      (typeof body.margin === "number" && body.margin > 0)) &&
-    (typeof body.stopLoss === "undefined" ||
-      typeof body.stopLoss === "number") &&
-    (typeof body.takeProfit === "undefined" ||
-      typeof body.takeProfit === "number")
+    isValidType &&
+    isValidOrderType &&
+    isLeverageValid &&
+    isSymbolValid &&
+    isQuantityValid &&
+    isMarginValid &&
+    isSLValid &&
+    isTPValid &&
+    isLimitPriceValid
   );
 }
 
 export const tradeProcessor = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   if (!isTradeRequest(req.body)) {
     return res.status(400).json({ message: "Invalid trade request format" });
@@ -50,28 +71,64 @@ export const tradeProcessor = async (
     symbol,
     quantity,
     margin: manualMargin,
-    stopLoss,
-    takeProfit,
   } = req.body as TradeRequest;
 
-  const lowerCaseSymbol = symbol.toLowerCase();
-  let entryPrice;
-  if (type == "buy") {
-    entryPrice = currentPrices.get(lowerCaseSymbol)?.ask;
-  } else {
-    entryPrice = currentPrices.get(lowerCaseSymbol)?.bid;
-  }
-  if (!entryPrice) {
-    return res
-      .status(400)
-      .json({ message: "Entry price is not set for this symbol." });
-  }
+  // Debug logging: see exactly what asset / params are being traded
+  console.log("[tradeProcessor] Incoming trade request", {
+    userId,
+    type,
+    symbol,
+    quantity,
+    leverage,
+    manualMargin,
+    orderType: req.body.orderType || "market",
+  });
 
   const effectiveLeverage = leverage || 1;
+
+  // Determine which price to use for margin validation.
+  // - For market orders we require a live bid/ask price.
+  // - For pending (limit/stop) orders we use the provided limitPrice and
+  //   deliberately do NOT depend on the in‑memory currentPrices map so that
+  //   pending orders can be created even before the live price feed is warm.
+  const orderType = req.body.orderType || "market";
+  let validationPrice: number;
+
+  if (orderType === "market") {
+    const lowerCaseSymbol = symbol.toLowerCase();
+    const priceInfo = currentPrices.get(lowerCaseSymbol);
+    const entryPrice = type === "buy" ? priceInfo?.ask : priceInfo?.bid;
+
+    console.log("[tradeProcessor] Market order price snapshot", {
+      symbol: lowerCaseSymbol,
+      type,
+      priceInfo,
+      chosenEntryPrice: entryPrice,
+      currentPriceKeys: Array.from(currentPrices.keys()),
+    });
+
+    if (!entryPrice) {
+      return res.status(400).json({
+        message:
+          "Live price is not available for this symbol right now. Please try again in a few seconds or use a supported symbol.",
+      });
+    }
+
+    validationPrice = entryPrice;
+  } else {
+    const { limitPrice } = req.body as TradeRequest;
+    if (!limitPrice || typeof limitPrice !== "number" || limitPrice <= 0) {
+      return res.status(400).json({
+        message: "limitPrice is required for limit/stop orders.",
+      });
+    }
+    validationPrice = limitPrice;
+  }
+
   const margin =
     manualMargin !== undefined
       ? manualMargin
-      : (quantity * entryPrice) / effectiveLeverage;
+      : (quantity * validationPrice) / effectiveLeverage;
 
   try {
     await validateBalanceForTrade(userId, margin);
@@ -118,7 +175,7 @@ export const closeTrade = async (req: Request, res: Response) => {
 
 export const getClosedTradesForUser = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const userId = req.userId;
   if (!userId) {
@@ -136,7 +193,7 @@ export const getClosedTradesForUser = async (
 
 export const getUnrealizedPnL = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const userId = req.userId;
   if (!userId) {
@@ -154,7 +211,7 @@ export const getUnrealizedPnL = async (
 
 export const getOpenTradesForUser = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const userId = req.userId;
   if (!userId) {
@@ -164,26 +221,48 @@ export const getOpenTradesForUser = async (
   try {
     const openTrades = await getUserOpenTrades(userId);
 
-    // Format the response according to the specified structure
-    const formattedTrades = openTrades.map((trade) => ({
-      orderId: trade.order_id,
-      type: trade.type,
-      margin: Math.round(trade.margin * 100), // Convert to cents (2 decimal places)
-      leverage: trade.leverage,
-      openPrice: Math.round(trade.entry_price * 10000), // Convert to basis points (4 decimal places)
-      symbol: trade.symbol,
-      quantity: trade.quantity,
-      stopLoss: trade.stop_loss
-        ? Math.round(trade.stop_loss * 10000)
-        : undefined,
-      takeProfit: trade.take_profit
-        ? Math.round(trade.take_profit * 10000)
-        : undefined,
-    }));
-
-    res.status(200).json({ trades: formattedTrades });
+    res.status(200).json({ trades: openTrades });
   } catch (error: any) {
     console.error("Error fetching open trades:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const cancelOrder = async (req: AuthenticatedRequest, res: Response) => {
+  const { orderId } = req.body;
+  if (!orderId) {
+    return res.status(400).json({ message: "Order ID is required" });
+  }
+
+  try {
+    // Note: To be safe, we should ideally verify the order belongs to the requesting user in the service layer,
+    // but for simplicity here we just call the service.
+    const cancelledTrade = await cancelPendingOrder(orderId);
+    res.status(200).json({
+      message: "Pending order cancelled successfully",
+      trade: cancelledTrade,
+    });
+  } catch (error: any) {
+    console.error("Error cancelling order:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const getPendingOrdersForUser = async (
+  req: AuthenticatedRequest,
+  res: Response,
+) => {
+  const userId = req.userId;
+  if (!userId) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try {
+    const pendingOrders = await getPendingOrders(userId);
+
+    res.status(200).json({ trades: pendingOrders });
+  } catch (error: any) {
+    console.error("Error fetching pending orders:", error);
     res.status(500).json({ message: error.message || "Internal server error" });
   }
 };

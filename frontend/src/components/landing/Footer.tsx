@@ -58,7 +58,7 @@ export function Footer() {
                 EXNESS-100
               </span>
             </div>
-            <p className="text-black/60 text-sm max-w-xs leading-relaxed">
+            <p className="text-black/60 text-base max-w-xs leading-relaxed">
               The most trusted platform for trading cryptocurrency, stocks, and forex. 
               Built for traders, by traders.
             </p>
@@ -83,7 +83,7 @@ export function Footer() {
           {/* Links columns */}
           {footerSections.map((section) => (
             <div key={section.title} className="space-y-4">
-              <h3 className="text-black/80 text-sm font-semibold uppercase tracking-wider">
+              <h3 className="text-black/80 text-base font-semibold uppercase tracking-wider">
                 {section.title}
               </h3>
               <ul className="space-y-3">
@@ -91,7 +91,7 @@ export function Footer() {
                   <li key={link.name}>
                     <a
                       href={link.href}
-                      className="text-black/60 hover:text-black text-sm transition-colors duration-200"
+                      className="text-black/60 hover:text-black text-base transition-colors duration-200"
                     >
                       {link.name}
                     </a>
@@ -105,10 +105,10 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-black/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-black/40 text-sm">
+            <p className="text-black/40 text-base">
               © {new Date().getFullYear()} TradePro. All rights reserved.
             </p>
-            <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-6 text-base">
               <a href="#" className="text-black/40 hover:text-black/60 transition-colors duration-200">
                 Terms
               </a>
@@ -124,7 +124,7 @@ export function Footer() {
 
         {/* Disclaimer */}
         <div className="mt-8 pt-8 border-t border-black/5">
-          <p className="text-black/40 text-xs leading-relaxed max-w-4xl">
+          <p className="text-black/40 text-sm leading-relaxed max-w-4xl">
             <strong className="text-black/50">Risk Disclaimer:</strong> Trading and investing in cryptocurrencies, 
             stocks, and forex involves substantial risk of loss and is not suitable for every investor. The valuation 
             of cryptocurrencies and stocks may fluctuate, and, as a result, clients may lose more than their original 
