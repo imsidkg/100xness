@@ -12,7 +12,6 @@ interface LandingPageProps {
   onAuthSuccess: () => void;
 }
 
-/** Must match auth modal scale — see motion.div below. */
 const LANDING_ZOOM = 1.22;
 
 export function LandingPage({ onAuthSuccess }: LandingPageProps) {
@@ -62,17 +61,17 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleCloseAuth}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-black/60 z-50"
             />
             
             {/* Auth Card */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
               <motion.div
-                initial={{ opacity: 0, scale: 0.85, y: 24 }}
-                animate={{ opacity: 1, scale: LANDING_ZOOM, y: 0 }}
-                exit={{ opacity: 0, scale: 0.85, y: 24 }}
-                transition={{ type: "spring", duration: 0.5 }}
-                className="pointer-events-auto origin-center will-change-transform"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                transition={{ type: "spring", duration: 0.45, bounce: 0.25 }}
+                className="pointer-events-auto"
               >
                 <AuthCard onAuthSuccess={onAuthSuccess} onClose={handleCloseAuth} />
               </motion.div>

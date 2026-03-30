@@ -87,12 +87,12 @@ export const AuthCard: React.FC<AuthCardProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
       className="w-full max-w-md mx-auto"
     >
-      <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-2xl relative rounded-2xl">
+      <Card className="bg-white border-gray-200 shadow-2xl relative rounded-2xl isolate">
         {onClose && (
           <X
             onClick={onClose}
