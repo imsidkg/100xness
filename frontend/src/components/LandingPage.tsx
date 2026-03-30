@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Navigation } from './landing/Navigation';
 import { Hero } from './landing/Hero';
 import { Features } from './landing/Features';
@@ -12,7 +12,17 @@ interface LandingPageProps {
   onAuthSuccess: () => void;
 }
 
-const LANDING_ZOOM = 1.22;
+const LANDING_ZOOM = 1.35;
+const landingZoomStyle = ((typeof document !== "undefined" &&
+  (document.body.style as any).zoom !== undefined) ? {
+  zoom: LANDING_ZOOM,
+} : {
+  transform: `scale(${LANDING_ZOOM})`,
+  transformOrigin: "top center",
+  // Keep the scaled content filling the viewport (avoid "cropped" look).
+  width: `${100 / LANDING_ZOOM}vw`,
+  height: `${100 / LANDING_ZOOM}vh`,
+}) as unknown as CSSProperties;
 
 export function LandingPage({ onAuthSuccess }: LandingPageProps) {
   const [showAuthCard, setShowAuthCard] = useState(false);
@@ -26,7 +36,10 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
   };
 
   return (
-    <div className="relative min-h-screen bg-white antialiased overflow-x-hidden">
+    <div
+      className="relative min-h-screen bg-white antialiased overflow-x-hidden"
+      style={landingZoomStyle}
+    >
       {/* Decorative dashed lines spanning entire page - vertical */}
       <div className="fixed left-[7%] top-0 bottom-0 w-[1px] z-10 pointer-events-none">
         <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 1 100">
@@ -40,10 +53,7 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
       </div>
 
       <Navigation onGetStarted={handleGetStarted} />
-      <main
-        className="origin-top max-w-[100vw] will-change-transform"
-        style={{ transform: `scale(${LANDING_ZOOM})` }}
-      >
+      <main className="max-w-[100vw]">
         <Hero onGetStarted={handleGetStarted} />
         <Features />
         <HowItWorks onGetStarted={handleGetStarted} />
