@@ -24,7 +24,7 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
   };
 
   return (
-    <div className="relative min-h-screen bg-white antialiased">
+    <div className="relative min-h-screen bg-white antialiased overflow-x-hidden">
       {/* Decorative dashed lines spanning entire page - vertical */}
       <div className="fixed left-[7%] top-0 bottom-0 w-[1px] z-10 pointer-events-none">
         <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 1 100">
@@ -38,7 +38,7 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
       </div>
 
       <Navigation onGetStarted={handleGetStarted} />
-      <main>
+      <main className="origin-top scale-[1.1] max-w-[100vw] [transform:translateZ(0)]">
         <Hero onGetStarted={handleGetStarted} />
         <Features />
         <HowItWorks onGetStarted={handleGetStarted} />
@@ -63,10 +63,10 @@ export function LandingPage({ onAuthSuccess }: LandingPageProps) {
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+                animate={{ opacity: 1, scale: 1.1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 transition={{ type: "spring", duration: 0.5 }}
-                className="pointer-events-auto"
+                className="pointer-events-auto origin-center"
               >
                 <AuthCard onAuthSuccess={onAuthSuccess} onClose={handleCloseAuth} />
               </motion.div>

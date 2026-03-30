@@ -1,4 +1,5 @@
 import { Twitter, Linkedin, Github, Youtube } from 'lucide-react';
+import { BrandLogo } from '../BrandLogo';
 
 export function Footer() {
   const footerSections = [
@@ -54,9 +55,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="col-span-2 space-y-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl text-gray-800  uppercase tracking-tight">
-                EXNESS-100
-              </span>
+              <BrandLogo className="h-9" alt="100xness" />
             </div>
             <p className="text-black/60 text-base max-w-xs leading-relaxed">
               The most trusted platform for trading cryptocurrency, stocks, and forex. 

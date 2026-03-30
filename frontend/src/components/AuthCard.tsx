@@ -7,7 +7,6 @@ import {
   Lock,
   UserPlus,
   LogIn,
-  TrendingUp,
   X,
 } from "lucide-react";
 import {
@@ -22,6 +21,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "sonner";
+import { BrandLogo } from "./BrandLogo";
 
 interface AuthCardProps {
   onAuthSuccess: () => void;
@@ -101,8 +101,8 @@ export const AuthCard: React.FC<AuthCardProps> = ({
           />
         )}
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center">
-            <TrendingUp className="h-8 w-8 text-gray-700" />
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            <BrandLogo className="h-14 w-auto" alt="100xness" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
             {isLogin ? "Welcome Back" : "Create Account"}

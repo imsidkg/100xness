@@ -14,6 +14,7 @@ import {
   LogOut,
 } from "lucide-react";
 import DepositModal from "./trading/DepositModal";
+import { BrandLogo } from "./BrandLogo";
 
 export interface TradeToEdit {
   order_id: string;
@@ -211,10 +212,9 @@ const TradingDashboard = ({
       <div className="flex items-center justify-between px-3 bg-[#141D23] border-b border-[#3F474C] shrink-0 min-h-[56px]">
         {/* Left: Logo + Instrument Tabs */}
         <div className="flex items-center gap-0 h-full">
-          <img
-            src="/volnex.webp"
-            alt="Logo"
-            className="h-7   w-auto mx-3 shrink-0 object-contain"
+          <BrandLogo
+            className="h-7 md:h-8 w-auto mx-3 shrink-0"
+            alt="100xness"
           />
 
           {/* Separator between logo and tabs */}

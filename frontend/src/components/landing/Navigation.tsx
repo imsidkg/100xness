@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import ButtonHero from "./Button";
+import { BrandLogo } from "../BrandLogo";
 
 interface NavigationProps {
   onGetStarted?: () => void;
@@ -46,11 +47,7 @@ export function Navigation({ onGetStarted }: NavigationProps) {
             whileHover={{ scale: 1.05 }}
             className="flex items-center gap-2 cursor-pointer pl-3"
           >
-            <img
-              src="/volnex.webp"
-              alt="Volnex Logo"
-              className="h-8 object-contain"
-            />
+            <BrandLogo className="h-9 md:h-10" alt="100xness" />
           </motion.div>
 
           {/* Desktop Navigation */}
