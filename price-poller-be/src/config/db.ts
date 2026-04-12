@@ -145,8 +145,8 @@ export async function refreshMaterializedViews() {
 
   for (const view of views) {
     try {
-      console.log(`Refreshing ${view}...`);
-      await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
+      console.log(`Refreshing continuous aggregate ${view}...`);
+      await pool.query(`CALL refresh_continuous_aggregate('${view}', NULL, NULL)`);
       console.log(`Refreshed ${view}`);
     } catch (err: any) {
       console.error(`Failed to refresh ${view}:`, err.message);
@@ -161,11 +161,11 @@ setTimeout(refreshMaterializedViews, 10000);
 const isNeon = process.env.DB_HOST?.includes("neon.tech");
 
 const poolConfig = {
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER || "postgres",
+  host: process.env.DB_HOST || "localhost",
+  database: process.env.DB_NAME || "neondb",
+  password: process.env.DB_PASSWORD || "your_password_here",
+  port: Number(process.env.DB_PORT || "5432"),
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
   // Optimized settings for local vs remote database
   max: isNeon ? 5 : 20, // More connections for local DB
@@ -176,19 +176,6 @@ const poolConfig = {
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000,
 };
-
-console.log(
-  "DEBUG PASSWORD USED BY POOL:",
-  JSON.stringify(poolConfig.password)
-);
-if (
-  !poolConfig.user ||
-  !poolConfig.password ||
-  !poolConfig.host ||
-  !poolConfig.database
-) {
-  throw new Error("❌ Missing required database environment variables");
-}
 
 console.log("🔌 Database pool config:", {
   host: poolConfig.host,

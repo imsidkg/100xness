@@ -106,43 +106,45 @@ app.get("/candles/:symbol", getCandles);
 app.use("/api/v1/user", authRoutes);
 app.use("/api/v1/trade", tradeRoutes);
 
-const server = app.listen(port, async () => {
-  console.log(`Server is running on http://localhost:${port}`);
-  
-  console.log("Initializing database...");
-  await initDB();
-  console.log("Database initialized");
-  
-  startPriceListener();
-  setInterval(monitorTradesForLiquidation, 5000);
-  
-  console.log(" Starting materialized view auto-refresh (every 5 minutes)");
-  setInterval(refreshMaterializedViews, 5 * 60 * 1000);
-  
-  setTimeout(refreshMaterializedViews, 10000);
-});
+export const startServer = (port: number) => {
+  const server = app.listen(port, async () => {
+    console.log(`Server is running on http://localhost:${port}`);
 
-process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, shutting down gracefully");
-  server.close(async () => {
-    const { pool } = await import("./config/db.js");
-    const { redis } = await import("./lib/redisClient.js");
-    await pool.end();
-    await redis.quit();
-    process.exit(0);
-  });
-});
+    startPriceListener();
+    setInterval(monitorTradesForLiquidation, 5000);
 
-process.on("SIGINT", async () => {
-  console.log("SIGINT received, shutting down gracefully");
-  server.close(async () => {
-    const { pool } = await import("./config/db.js");
-    const { redis } = await import("./lib/redisClient.js");
-    await pool.end();
-    await redis.quit();
-    process.exit(0);
+    console.log(" Starting materialized view auto-refresh (every 5 minutes)");
+    setInterval(refreshMaterializedViews, 5 * 60 * 1000);
+
+    setTimeout(refreshMaterializedViews, 10000);
   });
-});
+
+  process.on("SIGTERM", async () => {
+    console.log("SIGTERM received, shutting down gracefully");
+    server.close(async () => {
+      const { pool } = await import("./config/db.js");
+      const { redis } = await import("./lib/redisClient.js");
+      await pool.end();
+      await redis.quit();
+      process.exit(0);
+    });
+  });
+
+  process.on("SIGINT", async () => {
+    console.log("SIGINT received, shutting down gracefully");
+    server.close(async () => {
+      const { pool } = await import("./config/db.js");
+      const { redis } = await import("./lib/redisClient.js");
+      await pool.end();
+      await redis.quit();
+      process.exit(0);
+    });
+  });
+
+  return server;
+};
+
+export { app };
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught exception:", err);
