@@ -177,11 +177,6 @@ const poolConfig = {
   keepAliveInitialDelayMillis: 10000,
 };
 
-console.log(
-  "DEBUG PASSWORD USED BY POOL:",
-  JSON.stringify(poolConfig.password)
-);
-
 console.log("🔌 Database pool config:", {
   host: poolConfig.host,
   database: poolConfig.database,
