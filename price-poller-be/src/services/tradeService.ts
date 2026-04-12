@@ -136,7 +136,15 @@ export const createTrade = async (
     const commission = quantity * entryPrice * COMMISSION_RATE;
 
     // 3. Check if there are sufficient funds (free margin + commission) for the new trade
-    const freeMargin = balance - totalOpenMargin;
+    // We must account for unrealized PnL from other open trades to get true free margin
+    const userTradesWithPnl = await getUnrealizedPnLForUser(userId);
+    const totalUnrealizedPnl = userTradesWithPnl.reduce(
+      (sum, t) => sum + (t.unrealized_pnl || 0),
+      0,
+    );
+    const equity = balance + totalUnrealizedPnl;
+    const freeMargin = equity - totalOpenMargin;
+
     if (freeMargin < margin + commission) {
       await client.query("ROLLBACK");
       throw new Error("Insufficient funds to cover margin and commission.");
@@ -425,8 +433,26 @@ export const validateBalanceForTrade = async (
     if (balanceRes.rows.length === 0) {
       throw new Error("User balance record not found.");
     }
-    const balance = balanceRes.rows[0].balance;
-    if (balance < margin) {
+    const balance = parseFloat(balanceRes.rows[0].balance);
+
+    // Get total margin used for open trades
+    const marginRes = await client.query(
+      "SELECT COALESCE(SUM(margin), 0) as total_margin FROM trades WHERE user_id = $1 AND status = 'open'",
+      [userId],
+    );
+    const totalMarginUsed = parseFloat(marginRes.rows[0].total_margin);
+
+    // Get total unrealized PnL from all open trades
+    const tradesWithPnl = await getUnrealizedPnLForUser(userId);
+    const totalUnrealizedPnl = tradesWithPnl.reduce(
+      (sum, trade) => sum + (trade.unrealized_pnl || 0),
+      0,
+    );
+
+    const equity = balance + totalUnrealizedPnl;
+    const freeMargin = equity - totalMarginUsed;
+
+    if (freeMargin < margin) {
       throw new Error("Insufficient funds to cover margin.");
     }
     await client.query("COMMIT");
@@ -597,16 +623,15 @@ export const monitorPendingOrders = async () => {
           "UPDATE trades SET status = 'open', entry_price = $1, created_at = NOW() WHERE order_id = $2",
           [fillPrice, order.order_id],
         );
-        import("../lib/redisClient.js").then(({ redis }) => {
-          redis.publish(
-            "trade_updates",
-            JSON.stringify({
-              event: "pending_order_filled",
-              orderId: order.order_id,
-              fillPrice,
-            }),
-          );
-        });
+
+        redis.publish(
+          "trade_updates",
+          JSON.stringify({
+            event: "pending_order_filled",
+            orderId: order.order_id,
+            fillPrice,
+          }),
+        );
       }
     }
 

@@ -145,8 +145,8 @@ export async function refreshMaterializedViews() {
 
   for (const view of views) {
     try {
-      console.log(`Refreshing ${view}...`);
-      await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
+      console.log(`Refreshing continuous aggregate ${view}...`);
+      await pool.query(`CALL refresh_continuous_aggregate('${view}', NULL, NULL)`);
       console.log(`Refreshed ${view}`);
     } catch (err: any) {
       console.error(`Failed to refresh ${view}:`, err.message);
