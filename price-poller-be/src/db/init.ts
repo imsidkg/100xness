@@ -182,6 +182,27 @@ export async function initDB() {
     SELECT create_hypertable('tickers', 'time', if_not_exists => TRUE);
   `);
 
+  // Add 1 day retention policy to prevent disk space exhaustion
+  try {
+    await pool.query(`
+      SELECT add_retention_policy('tickers', INTERVAL '1 day', if_not_exists => true);
+    `);
+    console.log("Added 1 day retention policy for tickers.");
+  } catch (error: any) {
+    if (
+      !(
+        error.code === "22023" &&
+        error.detail &&
+        error.detail.includes("policy already exists")
+      )
+    ) {
+      console.warn(
+        "Could not add retention policy for tickers:",
+        error.message,
+      );
+    }
+  }
+
   // Example: create materialized view (continuous aggregate)
   await pool.query(`
   CREATE MATERIALIZED VIEW IF NOT EXISTS tickers_hourly
