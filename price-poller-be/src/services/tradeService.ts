@@ -9,8 +9,10 @@ const DAILY_SWAP_RATE = 0.0001; // 0.01% fee per day
 
 export type TradeWithUnrealizedPnl = Trade & { unrealized_pnl: number | null };
 
+const globalAny: any = global;
 export const currentPrices: Map<string, { ask: number; bid: number }> =
-  new Map();
+  globalAny.__currentPrices || new Map();
+globalAny.__currentPrices = currentPrices;
 
 export const startPriceListener = () => {
   const subscriber = redis.duplicate();
