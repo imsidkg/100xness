@@ -11,6 +11,8 @@ import {
 } from "../services/tradeService";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { redis } from "../lib/redisClient";
+import { getLatestTradePrice } from "../services/timescaleService";
+import { normalizeSymbol } from "../utils/symbol";
 
 const TRADE_QUEUE_NAME = "trade:order:queue";
 
@@ -68,10 +70,11 @@ export const tradeProcessor = async (
   const {
     type,
     leverage,
-    symbol,
+    symbol: rawSymbol,
     quantity,
     margin: manualMargin,
   } = req.body as TradeRequest;
+  const symbol = normalizeSymbol(rawSymbol);
 
   // Debug logging: see exactly what asset / params are being traded
   console.log("[tradeProcessor] Incoming trade request", {
@@ -95,26 +98,37 @@ export const tradeProcessor = async (
   let validationPrice: number;
 
   if (orderType === "market") {
-    const lowerCaseSymbol = symbol.toLowerCase();
-    const priceInfo = currentPrices.get(lowerCaseSymbol);
+    const priceInfo = currentPrices.get(symbol);
     const entryPrice = type === "buy" ? priceInfo?.ask : priceInfo?.bid;
 
     console.log("[tradeProcessor] Market order price snapshot", {
-      symbol: lowerCaseSymbol,
+      symbol,
+      rawSymbol,
       type,
       priceInfo,
       chosenEntryPrice: entryPrice,
       currentPriceKeys: Array.from(currentPrices.keys()),
     });
 
-    if (!entryPrice) {
-      return res.status(400).json({
-        message:
-          "Live price is not available for this symbol right now. Please try again in a few seconds or use a supported symbol.",
+    if (entryPrice) {
+      validationPrice = entryPrice;
+    } else {
+      const latestPrice = await getLatestTradePrice(symbol);
+      console.log("[tradeProcessor] Fallback DB price snapshot", {
+        symbol,
+        rawSymbol,
+        latestPrice,
       });
-    }
 
-    validationPrice = entryPrice;
+      if (!latestPrice) {
+        return res.status(400).json({
+          message:
+            "Live price is not available for this symbol right now. Please try again in a few seconds or use a supported symbol.",
+        });
+      }
+
+      validationPrice = latestPrice;
+    }
   } else {
     const { limitPrice } = req.body as TradeRequest;
     if (!limitPrice || typeof limitPrice !== "number" || limitPrice <= 0) {
@@ -135,7 +149,10 @@ export const tradeProcessor = async (
 
     const job = {
       userId: userId,
-      tradeDetails: req.body as TradeRequest,
+      tradeDetails: {
+        ...(req.body as TradeRequest),
+        symbol,
+      },
     };
 
     await redis.lpush(TRADE_QUEUE_NAME, JSON.stringify(job));
