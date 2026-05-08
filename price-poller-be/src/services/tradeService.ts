@@ -3,6 +3,7 @@ import { pool } from "../config/db";
 import { PoolClient } from "pg";
 import { Trade } from "../models/trade";
 import { getLatestTradePrice } from "./timescaleService";
+import { normalizeSymbol } from "../utils/symbol";
 
 const COMMISSION_RATE = 0.001; // 0.1% fee per side
 const DAILY_SWAP_RATE = 0.0001; // 0.01% fee per day
@@ -58,17 +59,18 @@ export const createTrade = async (
     limitPrice,
   } = tradeDetails;
 
-  const lowerCaseSymbol = symbol.toLowerCase();
+  const normalizedSymbol = normalizeSymbol(symbol);
 
   let entryPrice: number;
 
   if (orderType === "market") {
-    const priceInfo = currentPrices.get(lowerCaseSymbol);
+    const priceInfo = currentPrices.get(normalizedSymbol);
     entryPrice = type === "buy" ? (priceInfo?.ask ?? 0) : (priceInfo?.bid ?? 0);
 
     console.log("[createTrade] Resolving market entry price", {
       userId,
-      symbol: lowerCaseSymbol,
+      symbol: normalizedSymbol,
+      rawSymbol: symbol,
       type,
       priceInfo,
       chosenEntryPrice: entryPrice,
@@ -78,9 +80,9 @@ export const createTrade = async (
     // startup or if the price listener briefly disconnects), try to pull the
     // latest price from Timescale instead of immediately failing.
     if (!entryPrice) {
-      const latest = await getLatestTradePrice(lowerCaseSymbol);
+      const latest = await getLatestTradePrice(normalizedSymbol);
       console.log("[createTrade] Fallback to DB latest price", {
-        symbol: lowerCaseSymbol,
+        symbol: normalizedSymbol,
         latest,
       });
       if (!latest) {
@@ -160,7 +162,7 @@ export const createTrade = async (
       type,
       margin,
       effectiveLeverage, // Use effectiveLeverage here
-      lowerCaseSymbol,
+      normalizedSymbol,
       quantity,
       entryPrice,
       initialStatus,
