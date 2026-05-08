@@ -26,6 +26,7 @@ export const startPriceListener = () => {
   });
 
   subscriber.on("message", (channel, message) => {
+    console.log(`[startPriceListener] Received message on channel: ${channel}`);
     if (channel === BID_ASK_CHANNEL) {
       try {
         const parsedMessage = JSON.parse(message);
