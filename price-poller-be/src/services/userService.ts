@@ -38,12 +38,15 @@ export const getAccountSummary = async (userId: number) => {
       0
     );
 
+    const equity = balance + totalUnrealizedPnl;
+    const freeMargin = equity - totalMarginUsed;
+
     return {
       balance,
       totalMarginUsed,
       totalUnrealizedPnl,
-      equity: balance + totalUnrealizedPnl,
-      freeMargin: balance - totalMarginUsed,
+      equity,
+      freeMargin,
     };
   } catch (error) {
     console.error("Error fetching account summary:", error);

@@ -1,4 +1,4 @@
-import "./server";
+import { startServer } from "./server";
 import { fetchBinanceData } from "./websockets/binanceSocket";
 import { initDB } from "./db/init";
 import { processQueue } from "./workers/queryWorker";
@@ -13,6 +13,9 @@ const startApp = async () => {
     console.log("Initializing application...");
     await initDB();
     console.log("Database initialized");
+
+    const port = parseInt(process.env.PORT || "3001");
+    startServer(port);
 
     fetchBinanceData(symbols);
     startWebSocketServer();
